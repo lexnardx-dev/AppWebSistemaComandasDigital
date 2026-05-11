@@ -1,0 +1,233 @@
+@{
+    ViewData["Title"] = "Nuevo Pedido";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var mesas      = ViewBag.Mesas      as IEnumerable<AppWebSistemaComandasDigital.Dtos.MesaDTO>  ?? [];
+    var platos     = ViewBag.Platos     as IEnumerable<AppWebSistemaComandasDigital.Dtos.PlatoDTO> ?? [];
+    var mesaIdFijo = ViewBag.MesaIdFijo as int?;
+}
+
+<div class="d-flex align-items-center mb-4 gap-3">
+    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+    <div>
+        <h3 class="fw-bold mb-0"><i class="bi bi-plus-circle text-success me-2"></i>Nuevo Pedido</h3>
+        <p class="text-muted mb-0 small">Selecciona mesa y agrega platos al pedido</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- ── Panel izquierdo: configuración del pedido ─────────── -->
+    <div class="col-lg-4">
+        <div class="card p-3 mb-3">
+            <h6 class="fw-bold mb-3"><i class="bi bi-table me-2 text-primary"></i>Mesa</h6>
+            <select id="selectMesa" class="form-select form-select-lg">
+                <option value="">— Seleccionar mesa —</option>
+                @foreach (var m in mesas)
+                {
+                    if (mesaIdFijo.HasValue && m.Id == mesaIdFijo.Value)
+                    {
+                        <option value="@m.Id" selected>Mesa @m.Numero (cap. @m.Capacidad)</option>
+                    }
+                    else
+                    {
+                        <option value="@m.Id">Mesa @m.Numero (cap. @m.Capacidad)</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="card p-3 mb-3">
+            <h6 class="fw-bold mb-2">
+                <i class="bi bi-chat-left-text me-2 text-secondary"></i>Observaciones
+            </h6>
+            <textarea id="observaciones" class="form-control" rows="3"
+                      placeholder="Ej: sin picante, sin cebolla..."></textarea>
+        </div>
+
+        <!-- Resumen -->
+        <div class="card p-3 border-success">
+            <h6 class="fw-bold mb-3"><i class="bi bi-receipt me-2 text-success"></i>Resumen</h6>
+            <div id="resumenItems" class="mb-3 small text-muted">
+                <em>Sin platos agregados</em>
+            </div>
+            <hr class="my-2" />
+            <div class="d-flex justify-content-between fw-bold fs-5">
+                <span>Total:</span>
+                <span class="text-success">S/ <span id="totalPedido">0.00</span></span>
+            </div>
+            <button id="btnCrearPedido" class="btn btn-success w-100 mt-3 btn-lg" disabled>
+                <i class="bi bi-send me-2"></i>Enviar a cocina
+            </button>
+            <div id="msgError" class="small text-danger mt-2 d-none"></div>
+        </div>
+    </div>
+
+    <!-- ── Panel derecho: carta de platos ────────────────────── -->
+    <div class="col-lg-8">
+        <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0">
+                    <i class="bi bi-egg-fried me-2 text-warning"></i>Carta
+                </h6>
+                <input type="text" id="buscarPlato" class="form-control form-control-sm w-50"
+                       placeholder="Buscar plato..." />
+            </div>
+            <div class="row g-2" id="gridPlatos">
+                @foreach (var p in platos)
+                {
+                    <div class="col-6 col-md-4 plato-item" data-nombre="@p.Nombre.ToLower()">
+                        <div class="card h-100 border plato-card overflow-hidden"
+                             onclick="agregarPlato(@p.Id, '@Html.Raw(p.Nombre.Replace("'", "\\'"))', @p.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture))">
+                            @if (!string.IsNullOrWhiteSpace(p.ImagenUrl))
+                            {
+                                <img src="@p.ImagenUrl" alt="@p.Nombre" class="plato-card-img"
+                                     loading="lazy"
+                                     onerror="this.classList.add('d-none'); this.nextElementSibling.classList.remove('d-none');" />
+                                <div class="plato-card-placeholder d-none">
+                                    <i class="bi bi-image"></i>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="plato-card-placeholder">
+                                    <i class="bi bi-image"></i>
+                                </div>
+                            }
+                            <div class="p-2 text-start">
+                                <p class="fw-semibold small mb-1 text-truncate" title="@p.Nombre">@p.Nombre</p>
+                                <div class="d-flex justify-content-between align-items-center gap-2">
+                                    <span class="badge bg-success">S/ @p.Precio.ToString("F2")</span>
+                                    <small class="text-muted text-truncate">@p.CategoriaNombre</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (!platos.Any())
+                {
+                    <div class="col-12 text-center text-muted py-4">
+                        <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                        No hay platos disponibles.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let items = [];
+
+    function agregarPlato(id, nombre, precio) {
+        const existente = items.find(i => i.platoId === id);
+        if (existente) {
+            existente.cantidad++;
+        } else {
+            items.push({ platoId: id, nombre, precio, cantidad: 1, notas: '' });
+        }
+        renderResumen();
+    }
+
+    function quitarPlato(id) {
+        const idx = items.findIndex(i => i.platoId === id);
+        if (idx === -1) return;
+        if (items[idx].cantidad > 1) items[idx].cantidad--;
+        else items.splice(idx, 1);
+        renderResumen();
+    }
+
+    function renderResumen() {
+        const div    = document.getElementById('resumenItems');
+        const btnCrear = document.getElementById('btnCrearPedido');
+
+        if (items.length === 0) {
+            div.innerHTML = '<em>Sin platos agregados</em>';
+            document.getElementById('totalPedido').textContent = '0.00';
+            btnCrear.disabled = true;
+            return;
+        }
+
+        let html = '', total = 0;
+        items.forEach(i => {
+            const sub = i.precio * i.cantidad;
+            total += sub;
+            html += `<div class="d-flex justify-content-between align-items-center mb-1">
+                <span>${i.nombre} <span class="badge bg-secondary">${i.cantidad}</span></span>
+                <div class="d-flex align-items-center gap-1">
+                    <span class="text-success small">S/ ${sub.toFixed(2)}</span>
+                    <button class="btn btn-sm btn-outline-danger py-0 px-1"
+                            onclick="quitarPlato(${i.platoId})">
+                        <i class="bi bi-dash"></i>
+                    </button>
+                </div>
+            </div>`;
+        });
+
+        div.innerHTML = html;
+        document.getElementById('totalPedido').textContent = total.toFixed(2);
+        btnCrear.disabled = document.getElementById('selectMesa').value === '';
+    }
+
+    document.getElementById('selectMesa').addEventListener('change', () => {
+        const mesaOk = document.getElementById('selectMesa').value !== '';
+        document.getElementById('btnCrearPedido').disabled = items.length === 0 || !mesaOk;
+    });
+
+    document.getElementById('buscarPlato').addEventListener('input', function () {
+        const q = this.value.toLowerCase();
+        document.querySelectorAll('.plato-item').forEach(el => {
+            el.style.display = el.dataset.nombre.includes(q) ? '' : 'none';
+        });
+    });
+
+    document.getElementById('btnCrearPedido').addEventListener('click', async () => {
+        const btn = document.getElementById('btnCrearPedido');
+        const msgError = document.getElementById('msgError');
+        const mesaId = parseInt(document.getElementById('selectMesa').value);
+        const observaciones = document.getElementById('observaciones').value.trim();
+
+        btn.disabled  = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando...';
+        msgError.classList.add('d-none');
+
+        const payload = {
+            mesaId,
+            observaciones: observaciones || null,
+            detalles: items.map(i => ({
+                platoId:  i.platoId,
+                cantidad: i.cantidad,
+                notas:    i.notas || null
+            }))
+        };
+
+        try {
+            const res  = await fetch('/api/pedidos', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            if (data.exitoso) {
+                window.location.href = '/Pedido/Detalle/' + data.data.id;
+            } else {
+                msgError.textContent = data.mensaje;
+                msgError.classList.remove('d-none');
+                btn.disabled  = false;
+                btn.innerHTML = '<i class="bi bi-send me-2"></i>Enviar a cocina';
+            }
+        } catch {
+            msgError.textContent = 'Error de conexión. Intente nuevamente.';
+            msgError.classList.remove('d-none');
+            btn.disabled  = false;
+            btn.innerHTML = '<i class="bi bi-send me-2"></i>Enviar a cocina';
+        }
+    });
+
+    // Trigger inicial: si hay mesa pre-seleccionada activar botón cuando haya items
+    document.getElementById('selectMesa').dispatchEvent(new Event('change'));
+</script>
+
+}

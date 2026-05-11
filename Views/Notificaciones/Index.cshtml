@@ -1,0 +1,141 @@
+@{
+    ViewData["Title"] = "Notificaciones";
+    var rol = User.FindFirst("rol_nombre")?.Value ?? "";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0"><i class="bi bi-bell text-warning me-2"></i>Notificaciones</h3>
+        <p class="text-muted mb-0 small">Centro operativo en vivo. No guarda historial en base de datos.</p>
+    </div>
+    <button class="btn btn-outline-secondary btn-sm" type="button" onclick="limpiarEventos()">
+        <i class="bi bi-trash3 me-1"></i>Limpiar
+    </button>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card surface-card p-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="metric-icon metric-warning">
+                    <i class="bi bi-broadcast"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">Escuchando eventos</h5>
+                    <small class="text-muted">Rol actual: @rol</small>
+                </div>
+            </div>
+            <hr />
+            <div class="small text-muted">
+                <div class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Nuevos pedidos</div>
+                <div class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Cambios de estado</div>
+                <div><i class="bi bi-check-circle text-success me-2"></i>Actualizacion de mesas</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card p-0">
+            <div class="card-header bg-transparent px-3 py-3 d-flex align-items-center">
+                <span class="fw-bold">Eventos del turno</span>
+                <span class="badge bg-warning text-dark ms-auto" id="contadorEventos">0</span>
+            </div>
+            <div id="eventos" class="list-group list-group-flush">
+                <div id="emptyEventos" class="empty-state">
+                    <i class="bi bi-bell-slash"></i>
+                    <span>Aun no hay eventos en esta sesion.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const eventos = [];
+    const rolActual = '@rol';
+    const contenedor = document.getElementById('eventos');
+    const contador = document.getElementById('contadorEventos');
+    const empty = document.getElementById('emptyEventos');
+
+    function agregarEvento(tipo, titulo, mensaje, icono, color = 'warning') {
+        eventos.unshift({
+            tipo,
+            titulo,
+            mensaje,
+            icono,
+            color,
+            hora: new Date().toLocaleTimeString('es-PE')
+        });
+        renderEventos();
+    }
+
+    function renderEventos() {
+        contador.textContent = eventos.length;
+        empty.classList.toggle('d-none', eventos.length > 0);
+
+        contenedor.querySelectorAll('.evento-item').forEach(e => e.remove());
+
+        eventos.slice(0, 30).forEach(e => {
+            const item = document.createElement('div');
+            item.className = 'list-group-item evento-item d-flex align-items-start gap-3 py-3';
+            item.innerHTML = `
+                <div class="metric-icon metric-${e.color}" style="width:38px;height:38px;font-size:1rem">
+                    <i class="bi ${e.icono}"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold">${e.titulo}</div>
+                    <div class="small text-muted">${e.mensaje}</div>
+                </div>
+                <small class="text-muted">${e.hora}</small>`;
+            contenedor.appendChild(item);
+        });
+    }
+
+    function limpiarEventos() {
+        eventos.length = 0;
+        renderEventos();
+    }
+
+    const conn = new signalR.HubConnectionBuilder()
+        .withUrl('/hubs/pedidos')
+        .withAutomaticReconnect()
+        .build();
+
+    conn.on('NuevoPedido', pedido => {
+        agregarEvento(
+            'pedido',
+            `Nuevo pedido #${pedido.id}`,
+            `Mesa ${pedido.mesaNumero} enviada a cocina por ${pedido.usuarioNombre}.`,
+            'bi-receipt-cutoff',
+            'warning'
+        );
+    });
+
+    conn.on('EstadoPedidoActualizado', data => {
+        agregarEvento(
+            'estado',
+            `Pedido #${data.pedidoId} actualizado`,
+            `Nuevo estado: ${data.nuevoEstado}.`,
+            'bi-arrow-repeat',
+            'primary'
+        );
+    });
+
+    conn.on('EstadoMesaActualizado', data => {
+        agregarEvento(
+            'mesa',
+            `Mesa #${data.mesaId} actualizada`,
+            `Nuevo estado: ${data.nuevoEstado}.`,
+            'bi-grid-3x3-gap',
+            'success'
+        );
+    });
+
+    conn.start()
+        .then(() => {
+            if (rolActual) conn.invoke('UnirseAGrupo', rolActual);
+            agregarEvento('sistema', 'Centro conectado', 'Las notificaciones en vivo estan activas.', 'bi-wifi', 'success');
+        })
+        .catch(e => console.error('SignalR:', e));
+</script>
+}

@@ -1,0 +1,190 @@
+@using AppWebSistemaComandasDigital.Dtos
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var totalPedidos   = (int)(ViewBag.TotalPedidosHoy   ?? 0);
+    var mesasLibres    = (int)(ViewBag.MesasLibres        ?? 0);
+    var mesasOcupadas  = (int)(ViewBag.MesasOcupadas      ?? 0);
+    var enCocina       = (int)(ViewBag.PedidosEnCocina    ?? 0);
+    var pendientes     = (int)(ViewBag.PedidosPendientes  ?? 0);
+    var listos         = (int)(ViewBag.PedidosListos      ?? 0);
+    var totalVendido   = (decimal)(ViewBag.TotalVendido   ?? 0m);
+    var totalPlatos    = (int)(ViewBag.TotalPlatos        ?? 0);
+    var totalMesas     = (int)(ViewBag.TotalMesas         ?? 0);
+    var ultimosPedidos = ViewBag.UltimosPedidos as List<PedidoDTO> ?? [];
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0"><i class="ri-dashboard-3-line text-info me-2"></i>Dashboard</h3>
+        <p class="text-muted mb-0 small">
+            @DateTime.Now.ToString("dddd, dd 'de' MMMM 'de' yyyy",
+                new System.Globalization.CultureInfo("es-PE"))
+        </p>
+    </div>
+    <span class="badge bg-success px-3 py-2">
+        <i class="ri-checkbox-blank-circle-fill me-1" style="font-size:.45rem;vertical-align:middle"></i>
+        En línea
+    </span>
+</div>
+
+<!-- ── Stat cards principales ─────────────────────────────────── -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card" style="background:linear-gradient(135deg,#0d6efd,#0dcaf0)">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="mb-1 small opacity-75">Pedidos activos</p>
+                    <div class="stat-value">@totalPedidos</div>
+                </div>
+                <i class="ri-file-list-3-line stat-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card" style="background:linear-gradient(135deg,#198754,#20c997)">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="mb-1 small opacity-75">Mesas libres</p>
+                    <div class="stat-value">@mesasLibres / @totalMesas</div>
+                </div>
+                <i class="ri-layout-grid-line stat-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card" style="background:linear-gradient(135deg,#fd7e14,#ffc107)">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="mb-1 small opacity-75">En cocina</p>
+                    <div class="stat-value">@enCocina</div>
+                </div>
+                <i class="ri-fire-line stat-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card" style="background:linear-gradient(135deg,#6610f2,#d63384)">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="mb-1 small opacity-75">Total vendido</p>
+                    <div class="stat-value" style="font-size:1.4rem">S/ @totalVendido.ToString("F2")</div>
+                </div>
+                <i class="ri-money-dollar-circle-line stat-icon"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Stat cards secundarias ─────────────────────────────────── -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card p-3 text-center border-start border-secondary border-3">
+            <div class="fw-bold fs-3 text-secondary">@pendientes</div>
+            <div class="text-muted small">Pendientes</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card p-3 text-center border-start border-primary border-3">
+            <div class="fw-bold fs-3 text-primary">@listos</div>
+            <div class="text-muted small">Listos para servir</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card p-3 text-center border-start border-danger border-3">
+            <div class="fw-bold fs-3 text-danger">@mesasOcupadas</div>
+            <div class="text-muted small">Mesas ocupadas</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card p-3 text-center border-start border-warning border-3">
+            <div class="fw-bold fs-3 text-warning">@totalPlatos</div>
+            <div class="text-muted small">Platos en menú</div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Tabla pedidos activos ──────────────────────────────────── -->
+<div class="card p-0">
+    <div class="card-header bg-transparent border-bottom px-3 py-3 d-flex align-items-center gap-2">
+        <i class="ri-history-line text-info"></i>
+        <span class="fw-bold">Pedidos activos</span>
+        @if (ultimosPedidos.Count > 0)
+        {
+            <span class="badge bg-warning text-dark ms-auto">@ultimosPedidos.Count</span>
+        }
+    </div>
+
+    @if (ultimosPedidos.Count == 0)
+    {
+        <div class="text-center text-muted py-5">
+            <i class="ri-inbox-line d-block mb-2" style="font-size:2.5rem;opacity:.4"></i>
+            No hay pedidos activos en este momento.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover table-sm align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:60px">#</th>
+                        <th>Mesa</th>
+                        <th>Mozo</th>
+                        <th>Estado</th>
+                        <th class="text-end">Total</th>
+                        <th style="width:50px"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in ultimosPedidos)
+                    {
+                        var badge = p.Estado switch {
+                            "Pendiente" => "secondary",
+                            "EnCocina"  => "warning",
+                            "Listo"     => "primary",
+                            "Entregado" => "success",
+                            _           => "secondary"
+                        };
+                        <tr>
+                            <td class="fw-bold text-muted small">#@p.Id</td>
+                            <td><i class="ri-table-line me-1 text-secondary"></i>@p.MesaNumero</td>
+                            <td class="small">@p.UsuarioNombre</td>
+                            <td><span class="badge bg-@badge">@p.Estado</span></td>
+                            <td class="text-end fw-semibold text-success small">
+                                S/ @p.Total.ToString("F2")
+                            </td>
+                            <td class="text-end">
+                                <a asp-area="" asp-controller="Pedido" asp-action="Detalle"
+                                   asp-route-id="@p.Id"
+                                   class="btn btn-sm btn-outline-primary action-btn" title="Ver detalle">
+                                    <i class="ri-eye-line"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="px-3 py-2 border-top">
+            <a asp-area="" asp-controller="Pedido" asp-action="Index"
+               class="text-decoration-none small text-muted">
+                Ver todos los pedidos <i class="ri-arrow-right-s-line"></i>
+            </a>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+    const conn = new signalR.HubConnectionBuilder()
+        .withUrl("/hubs/pedidos").withAutomaticReconnect().build();
+
+    conn.on("NuevoPedido",             () => location.reload());
+    conn.on("EstadoPedidoActualizado", () => location.reload());
+    conn.on("EstadoMesaActualizado",   () => location.reload());
+
+    conn.start().catch(e => console.error("SignalR:", e));
+</script>
+}

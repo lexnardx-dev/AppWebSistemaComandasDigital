@@ -1,0 +1,165 @@
+@model IEnumerable<AppWebSistemaComandasDigital.Dtos.PlatoDTO>
+@{
+    ViewData["Title"] = "Platos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var confirmarId     = TempData["ConfirmarEliminacionId"] as int?;
+    var confirmarNombre = TempData["ConfirmarEliminacionNombre"] as string ?? "";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0"><i class="bi bi-egg-fried text-warning me-2"></i>Platos</h3>
+        <p class="text-muted mb-0 small">Gestión del menú</p>
+    </div>
+    <a asp-action="Crear" class="btn btn-success btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>Nuevo plato
+    </a>
+</div>
+
+<div class="card p-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:60px">#</th>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th class="text-end">Precio</th>
+                    <th class="text-center">Disponible</th>
+                    <th class="text-end" style="width:130px">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-3 d-block mb-2"></i>No hay platos registrados.
+                        </td>
+                    </tr>
+                }
+                @foreach (var p in Model)
+                {
+                    <tr>
+                        <td class="text-muted small">@p.Id</td>
+                        <td class="fw-semibold">@p.Nombre</td>
+                        <td><span class="badge bg-secondary">@p.CategoriaNombre</span></td>
+                        <td class="text-end fw-bold text-success">S/ @p.Precio.ToString("F2")</td>
+                        <td class="text-center">
+                            @if (p.Disponible)
+                            {
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-x-circle-fill text-danger"></i>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <a asp-action="Editar" asp-route-id="@p.Id"
+                               class="btn btn-sm btn-outline-primary action-btn me-1" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger action-btn"
+                                    title="Eliminar"
+                                    onclick="confirmarEliminar(@p.Id, '@Html.Raw(p.Nombre.Replace("'", "\\'"))')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal 1: Confirmar eliminación simple (sin pedidos) -->
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Eliminar plato
+                </h6>
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="small mb-0">¿Eliminar <strong id="nombrePlato"></strong>? Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="formEliminar" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 2: Plato con pedidos — elegir entre desactivar o eliminar definitivamente -->
+<div class="modal fade" id="modalOpciones" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold text-warning">
+                    <i class="bi bi-exclamation-circle me-2"></i>Plato con pedidos registrados
+                </h6>
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="small mb-3">
+                    El plato <strong id="nombreOpciones"></strong> tiene pedidos en el historial.
+                    ¿Qué deseas hacer?
+                </p>
+                <div class="d-grid gap-2">
+                    <form id="formDesactivar" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-warning w-100 text-start">
+                            <i class="bi bi-eye-slash me-2"></i>
+                            <strong>Marcar como no disponible</strong>
+                            <small class="d-block text-muted fw-normal mt-1">
+                                El plato se oculta del menú pero el historial de pedidos se conserva.
+                            </small>
+                        </button>
+                    </form>
+                    <form id="formForceDelete" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger w-100 text-start">
+                            <i class="bi bi-trash3 me-2"></i>
+                            <strong>Eliminar definitivamente</strong>
+                            <small class="d-block text-muted fw-normal mt-1">
+                                Se elimina el plato del sistema. Esta acción no se puede deshacer.
+                            </small>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function confirmarEliminar(id, nombre) {
+        document.getElementById('nombrePlato').textContent = nombre;
+        document.getElementById('formEliminar').action = `/Admin/Plato/Eliminar/${id}`;
+        new bootstrap.Modal(document.getElementById('modalEliminar')).show();
+    }
+
+    @if (confirmarId.HasValue)
+    {
+        <text>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('nombreOpciones').textContent = '@Html.Raw(confirmarNombre.Replace("'", "\\'"))';
+            document.getElementById('formDesactivar').action  = `/Admin/Plato/Desactivar/@confirmarId`;
+            document.getElementById('formForceDelete').action = `/Admin/Plato/ForceDelete/@confirmarId`;
+            new bootstrap.Modal(document.getElementById('modalOpciones')).show();
+        });
+        </text>
+    }
+</script>
+}

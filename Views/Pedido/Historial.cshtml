@@ -1,0 +1,98 @@
+@model IEnumerable<AppWebSistemaComandasDigital.Dtos.PedidoDTO>
+@{
+    ViewData["Title"] = "Historial de pedidos";
+    var estado = (string)(ViewBag.Estado ?? "");
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0"><i class="bi bi-clock-history text-secondary me-2"></i>Historial de pedidos</h3>
+        <p class="text-muted mb-0 small">Pedidos cerrados: entregados y cancelados</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Activos
+    </a>
+</div>
+
+<form method="get" class="card surface-card p-3 mb-3">
+    <div class="row g-3 align-items-end">
+        <div class="col-6 col-lg-2">
+            <label class="form-label small fw-semibold">Desde</label>
+            <input type="date" name="desde" value="@ViewBag.Desde" class="form-control" />
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label small fw-semibold">Hasta</label>
+            <input type="date" name="hasta" value="@ViewBag.Hasta" class="form-control" />
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label small fw-semibold">Estado</label>
+            <select name="estado" class="form-select">
+                <option value="">Todos</option>
+                <option value="Entregado" selected="@(estado == "Entregado" ? "selected" : null)">Entregado</option>
+                <option value="Cancelado" selected="@(estado == "Cancelado" ? "selected" : null)">Cancelado</option>
+            </select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label small fw-semibold">Mesa</label>
+            <input name="mesa" value="@ViewBag.Mesa" class="form-control" placeholder="Ej: 7" />
+        </div>
+        <div class="col-12 col-lg-2">
+            <label class="form-label small fw-semibold">Mozo</label>
+            <input name="mozo" value="@ViewBag.Mozo" class="form-control" placeholder="Nombre" />
+        </div>
+        <div class="col-12 col-lg-2 d-flex gap-2">
+            <button class="btn btn-primary w-100" type="submit">
+                <i class="bi bi-funnel me-1"></i>Filtrar
+            </button>
+            <a asp-action="Historial" class="btn btn-outline-secondary action-btn" title="Limpiar">
+                <i class="bi bi-x-lg"></i>
+            </a>
+        </div>
+    </div>
+</form>
+
+<div class="card p-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:70px">#</th>
+                    <th>Mesa</th>
+                    <th>Mozo</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th class="text-end">Total</th>
+                    <th class="text-end" style="width:80px">Accion</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    var badge = p.Estado == "Entregado" ? "success" : "secondary";
+                    <tr>
+                        <td class="fw-bold text-muted">#@p.Id</td>
+                        <td><i class="bi bi-table me-1 text-secondary"></i>Mesa @p.MesaNumero</td>
+                        <td>@p.UsuarioNombre</td>
+                        <td><span class="badge bg-@badge">@p.Estado</span></td>
+                        <td class="text-muted small">@p.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="text-end fw-semibold text-success">S/ @p.Total.ToString("F2")</td>
+                        <td class="text-end">
+                            <a asp-action="Detalle" asp-route-id="@p.Id" class="btn btn-sm btn-outline-primary action-btn" title="Ver detalle">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-5">
+                            <i class="bi bi-archive fs-3 d-block mb-2"></i>
+                            No hay pedidos cerrados con los filtros actuales.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

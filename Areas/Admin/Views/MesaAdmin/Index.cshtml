@@ -1,0 +1,126 @@
+@model IEnumerable<AppWebSistemaComandasDigital.Dtos.MesaDTO>
+@{
+    ViewData["Title"] = "Gestión de Mesas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0"><i class="bi bi-grid-3x3-gap text-primary me-2"></i>Gestión de Mesas</h3>
+        <p class="text-muted mb-0 small">Administra las mesas del restaurante</p>
+    </div>
+    <a asp-action="Create" class="btn btn-success btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>Nueva mesa
+    </a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-4">
+        <div class="card text-center p-3 border-start border-primary border-3">
+            <div class="fw-bold fs-3">@Model.Count()</div>
+            <div class="text-muted small">Total</div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card text-center p-3 border-start border-success border-3">
+            <div class="fw-bold fs-3 text-success">@Model.Count(m => m.Estado == "Libre")</div>
+            <div class="text-muted small">Libres</div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card text-center p-3 border-start border-danger border-3">
+            <div class="fw-bold fs-3 text-danger">@Model.Count(m => m.Estado == "Ocupada")</div>
+            <div class="text-muted small">Ocupadas</div>
+        </div>
+    </div>
+</div>
+
+<div class="card p-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:60px">#</th>
+                    <th>Número</th>
+                    <th class="text-center">Capacidad</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-end" style="width:150px">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox me-2"></i>No hay mesas registradas.
+                        </td>
+                    </tr>
+                }
+                @foreach (var mesa in Model)
+                {
+                    var badgeColor = mesa.Estado switch {
+                        "Libre"     => "success",
+                        "Ocupada"   => "danger",
+                        "Reservada" => "warning",
+                        _           => "secondary"
+                    };
+                    <tr>
+                        <td class="text-muted small">@mesa.Id</td>
+                        <td class="fw-bold">Mesa @mesa.Numero</td>
+                        <td class="text-center">
+                            <i class="bi bi-people me-1 text-secondary"></i>@mesa.Capacidad personas
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-@badgeColor">@mesa.Estado</span>
+                        </td>
+                        <td class="text-end">
+                            <a asp-action="Edit" asp-route-id="@mesa.Id"
+                               class="btn btn-sm btn-outline-primary action-btn me-1" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger action-btn"
+                                    onclick="confirmarEliminar(@mesa.Id, '@mesa.Numero')"
+                                    title="Eliminar"
+                                    @(mesa.Estado == "Ocupada" ? "disabled" : "")>
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Eliminar mesa
+                </h6>
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="small mb-0">¿Eliminar <strong id="nombreMesa"></strong>? Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="formEliminar" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function confirmarEliminar(id, numero) {
+        document.getElementById('nombreMesa').textContent = 'Mesa ' + numero;
+        document.getElementById('formEliminar').action = `/Admin/MesaAdmin/Delete/${id}`;
+        new bootstrap.Modal(document.getElementById('modalEliminar')).show();
+    }
+</script>
+}

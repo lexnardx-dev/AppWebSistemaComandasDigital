@@ -1,0 +1,772 @@
+@model AppWebSistemaComandasDigital.Dtos.LoginDTO
+@{
+    ViewData["Title"] = "Iniciar sesion";
+    Layout = null;
+    bool modoSetup = ViewBag.ModoSetup == true;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(modoSetup ? "Configuracion inicial" : "Acceso") - Comandas Digital</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <style>
+        :root {
+            --auth-bg: #10131c;
+            --auth-panel: #171b26;
+            --auth-panel-soft: #1d2330;
+            --auth-border: rgba(255,255,255,.08);
+            --auth-brand: #f6b700;
+            --auth-brand-soft: rgba(246,183,0,.12);
+            --auth-green: #16a34a;
+            --auth-text: #e5e7eb;
+            --auth-muted: #94a3b8;
+            --auth-form-bg: #f8fafc;
+            --auth-form-text: #172033;
+            --auth-form-muted: #64748b;
+            --auth-input: #ffffff;
+            --auth-input-border: #d9dee8;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { min-height: 100%; }
+        body {
+            margin: 0;
+            font-family: Inter, "Segoe UI", system-ui, sans-serif;
+            color: var(--auth-form-text);
+            background: var(--auth-bg);
+        }
+
+        .login-shell {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: minmax(0, 1.25fr) minmax(420px, .75fr);
+            background: var(--auth-bg);
+        }
+
+        .brand-panel {
+            position: relative;
+            min-height: 100vh;
+            padding: clamp(2rem, 4vw, 4rem);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            background:
+                linear-gradient(135deg, rgba(246,183,0,.05), transparent 34%),
+                radial-gradient(circle at 80% 85%, rgba(22,163,74,.08), transparent 28%),
+                var(--auth-bg);
+        }
+
+        .brand-top {
+            display: flex;
+            align-items: center;
+            gap: .85rem;
+        }
+
+        .brand-mark {
+            width: 44px;
+            height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: var(--auth-brand);
+            color: #111827;
+            font-size: 1.25rem;
+            box-shadow: 0 14px 30px rgba(246,183,0,.18);
+        }
+
+        .brand-name {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        .brand-name span {
+            display: block;
+            margin-top: .18rem;
+            color: var(--auth-muted);
+            font-size: .68rem;
+            font-weight: 700;
+            letter-spacing: 1.1px;
+            text-transform: uppercase;
+        }
+
+        .product-story {
+            width: min(620px, 100%);
+            margin: 2rem auto;
+        }
+
+        .story-kicker {
+            color: var(--auth-brand);
+            font-size: .78rem;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .story-title {
+            margin: .75rem 0 1rem;
+            color: #fff;
+            font-size: clamp(2rem, 4.4vw, 4.25rem);
+            line-height: .98;
+            font-weight: 850;
+            letter-spacing: 0;
+            max-width: 760px;
+        }
+
+        .story-copy {
+            max-width: 540px;
+            color: var(--auth-muted);
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        .operation-preview {
+            margin-top: 2rem;
+            display: grid;
+            grid-template-columns: minmax(280px, 380px) minmax(220px, 1fr);
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .ticket-card,
+        .status-card {
+            border: 1px solid var(--auth-border);
+            border-radius: 16px;
+            background: rgba(23,27,38,.78);
+            box-shadow: 0 24px 70px rgba(0,0,0,.22);
+            backdrop-filter: blur(18px);
+        }
+
+        .ticket-card {
+            padding: 1.1rem;
+        }
+
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            gap: 1rem;
+            padding-bottom: .85rem;
+            border-bottom: 1px solid var(--auth-border);
+        }
+
+        .ticket-id {
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .ticket-meta {
+            margin-top: .15rem;
+            color: var(--auth-muted);
+            font-size: .78rem;
+        }
+
+        .ticket-badge {
+            flex-shrink: 0;
+            padding: .35rem .65rem;
+            border-radius: 999px;
+            background: var(--auth-brand-soft);
+            color: var(--auth-brand);
+            font-size: .72rem;
+            font-weight: 800;
+        }
+
+        .ticket-list {
+            display: grid;
+            gap: .75rem;
+            padding: 1rem 0;
+        }
+
+        .ticket-item {
+            display: grid;
+            grid-template-columns: 2rem 1fr auto;
+            gap: .7rem;
+            align-items: center;
+            color: var(--auth-text);
+            font-size: .9rem;
+        }
+
+        .ticket-item span:first-child {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 9px;
+            background: rgba(255,255,255,.06);
+            color: #fff;
+            font-weight: 800;
+        }
+
+        .ticket-item small {
+            color: var(--auth-muted);
+            font-size: .76rem;
+        }
+
+        .ticket-item strong {
+            color: #fff;
+            font-size: .82rem;
+        }
+
+        .ticket-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: .85rem;
+            border-top: 1px solid var(--auth-border);
+            color: var(--auth-muted);
+            font-size: .82rem;
+        }
+
+        .ticket-footer strong {
+            color: #fff;
+            font-size: 1.05rem;
+        }
+
+        .status-card {
+            padding: 1rem;
+            display: grid;
+            align-content: space-between;
+            gap: 1rem;
+        }
+
+        .status-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .75rem;
+            padding: .72rem;
+            border-radius: 12px;
+            background: rgba(255,255,255,.045);
+        }
+
+        .status-row-label {
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+            color: var(--auth-text);
+            font-size: .86rem;
+            font-weight: 650;
+        }
+
+        .status-row-label i {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9px;
+            color: var(--auth-brand);
+            background: var(--auth-brand-soft);
+        }
+
+        .status-row strong {
+            color: #fff;
+            font-size: 1.05rem;
+        }
+
+        .brand-foot {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .75rem;
+            color: var(--auth-muted);
+            font-size: .82rem;
+        }
+
+        .brand-foot span {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+        }
+
+        .brand-foot i { color: var(--auth-brand); }
+
+        .form-panel {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background: var(--auth-form-bg);
+        }
+
+        .auth-card {
+            width: min(100%, 420px);
+        }
+
+        .mobile-brand {
+            display: none;
+            align-items: center;
+            gap: .75rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-kicker {
+            margin-bottom: .7rem;
+            color: var(--auth-brand);
+            font-size: .76rem;
+            font-weight: 850;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .auth-title {
+            margin: 0;
+            color: var(--auth-form-text);
+            font-size: 1.85rem;
+            line-height: 1.12;
+            font-weight: 850;
+        }
+
+        .auth-copy {
+            margin: .65rem 0 2rem;
+            color: var(--auth-form-muted);
+            font-size: .92rem;
+            line-height: 1.6;
+        }
+
+        .form-label {
+            margin-bottom: .45rem;
+            color: #263244;
+            font-size: .82rem;
+            font-weight: 750;
+        }
+
+        .form-control {
+            height: 48px;
+            border: 1px solid var(--auth-input-border);
+            border-radius: 10px;
+            background: var(--auth-input);
+            color: var(--auth-form-text);
+            font-size: .93rem;
+            box-shadow: none;
+            transition: border-color .16s ease, box-shadow .16s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--auth-brand);
+            box-shadow: 0 0 0 4px rgba(246,183,0,.16);
+        }
+
+        .input-help {
+            margin-top: .35rem;
+            color: var(--auth-form-muted);
+            font-size: .76rem;
+        }
+
+        .password-field {
+            position: relative;
+        }
+
+        .password-field .form-control {
+            padding-right: 3rem;
+        }
+
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: .45rem;
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--auth-form-muted);
+            transform: translateY(-50%);
+        }
+
+        .password-toggle:hover {
+            background: #eef2f7;
+            color: #263244;
+        }
+
+        .btn-auth {
+            width: 100%;
+            height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            border: 0;
+            border-radius: 10px;
+            background: #191d2b;
+            color: #fff;
+            font-size: .94rem;
+            font-weight: 800;
+            transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+        }
+
+        .btn-auth:hover {
+            color: #fff;
+            background: #23283a;
+            box-shadow: 0 14px 28px rgba(16,19,28,.18);
+            transform: translateY(-1px);
+        }
+
+        .btn-auth-success {
+            background: var(--auth-green);
+        }
+
+        .btn-auth-success:hover {
+            background: #12843d;
+            box-shadow: 0 14px 28px rgba(22,163,74,.18);
+        }
+
+        .auth-alert {
+            display: flex;
+            gap: .65rem;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding: .85rem .95rem;
+            border-radius: 10px;
+            font-size: .84rem;
+            line-height: 1.45;
+        }
+
+        .auth-alert i {
+            flex-shrink: 0;
+            margin-top: .1rem;
+        }
+
+        .auth-alert-danger { background: #fff1f2; color: #be123c; }
+        .auth-alert-success { background: #ecfdf5; color: #047857; }
+        .auth-alert-warning { background: #fffbeb; color: #92400e; }
+        .auth-note {
+            margin-top: 1.35rem;
+            padding: .95rem;
+            border: 1px solid #e4e8f0;
+            border-radius: 12px;
+            background: #eef2f7;
+            color: var(--auth-form-muted);
+            font-size: .82rem;
+            line-height: 1.5;
+        }
+
+        .setup-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            margin-bottom: 1.1rem;
+            padding: .35rem .75rem;
+            border-radius: 999px;
+            background: #ecfdf5;
+            color: #047857;
+            font-size: .78rem;
+            font-weight: 850;
+        }
+
+        @@media (max-width: 980px) {
+            .login-shell {
+                grid-template-columns: 1fr;
+            }
+
+            .brand-panel {
+                display: none;
+            }
+
+            .form-panel {
+                padding: 1.5rem;
+            }
+
+            .mobile-brand {
+                display: flex;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .form-panel {
+                align-items: flex-start;
+                padding: 1.25rem;
+            }
+
+            .auth-title {
+                font-size: 1.55rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="login-shell">
+    <section class="brand-panel" aria-label="Resumen operativo">
+        <div class="brand-top">
+            <div class="brand-mark">
+                <i class="bi bi-receipt-cutoff"></i>
+            </div>
+            <div class="brand-name">
+                Comandas Digital
+                <span>Operacion de sala y cocina</span>
+            </div>
+        </div>
+
+        <div class="product-story">
+            <div class="story-kicker">Sistema POS para restaurantes</div>
+            <h1 class="story-title">Pedidos claros durante todo el turno.</h1>
+            <p class="story-copy">
+                Coordina mesas, cocina y administracion con una vista operativa hecha para trabajar rapido, sin ruido visual.
+            </p>
+
+            <div class="operation-preview">
+                <article class="ticket-card" aria-label="Ejemplo de comanda activa">
+                    <div class="ticket-header">
+                        <div>
+                            <div class="ticket-id">Pedido #128</div>
+                            <div class="ticket-meta">Mesa 07 - Mozo: Piero</div>
+                        </div>
+                        <span class="ticket-badge">En cocina</span>
+                    </div>
+                    <div class="ticket-list">
+                        <div class="ticket-item">
+                            <span>2</span>
+                            <div>
+                                Lomo saltado
+                                <small class="d-block">Sin cebolla, termino medio</small>
+                            </div>
+                            <strong>S/ 36.00</strong>
+                        </div>
+                        <div class="ticket-item">
+                            <span>1</span>
+                            <div>
+                                Chicha morada
+                                <small class="d-block">Sin hielo</small>
+                            </div>
+                            <strong>S/ 8.00</strong>
+                        </div>
+                        <div class="ticket-item">
+                            <span>1</span>
+                            <div>
+                                Causa limena
+                                <small class="d-block">Entrada</small>
+                            </div>
+                            <strong>S/ 14.50</strong>
+                        </div>
+                    </div>
+                    <div class="ticket-footer">
+                        <span>Tiempo activo: 08 min</span>
+                        <strong>S/ 58.50</strong>
+                    </div>
+                </article>
+
+                <aside class="status-card" aria-label="Indicadores del turno">
+                    <div class="status-row">
+                        <div class="status-row-label">
+                            <i class="bi bi-grid-3x3-gap"></i>
+                            Mesas activas
+                        </div>
+                        <strong>12</strong>
+                    </div>
+                    <div class="status-row">
+                        <div class="status-row-label">
+                            <i class="bi bi-fire"></i>
+                            En cocina
+                        </div>
+                        <strong>4</strong>
+                    </div>
+                    <div class="status-row">
+                        <div class="status-row-label">
+                            <i class="bi bi-check2-circle"></i>
+                            Listos
+                        </div>
+                        <strong>3</strong>
+                    </div>
+                    <div class="status-row">
+                        <div class="status-row-label">
+                            <i class="bi bi-shield-lock"></i>
+                            Acceso seguro
+                        </div>
+                        <strong>JWT</strong>
+                    </div>
+                </aside>
+            </div>
+        </div>
+
+        <div class="brand-foot">
+            <span><i class="bi bi-lightning-charge-fill"></i> Tiempo real</span>
+            <span><i class="bi bi-phone"></i> App movil para mozos</span>
+            <span><i class="bi bi-person-badge"></i> Roles por operacion</span>
+        </div>
+    </section>
+
+    <section class="form-panel">
+        <div class="auth-card">
+            <div class="mobile-brand">
+                <div class="brand-mark">
+                    <i class="bi bi-receipt-cutoff"></i>
+                </div>
+                <div class="brand-name" style="color:#172033">
+                    Comandas Digital
+                    <span style="color:#64748b">Operacion de sala y cocina</span>
+                </div>
+            </div>
+
+            @if (modoSetup)
+            {
+                <div class="setup-badge">
+                    <i class="bi bi-stars"></i>
+                    Primera configuracion
+                </div>
+                <div class="form-kicker">Cuenta principal</div>
+                <h2 class="auth-title">Crea el administrador del sistema</h2>
+                <p class="auth-copy">Esta pantalla solo aparece antes de activar el primer usuario administrador.</p>
+
+                @if (TempData["Error"] is string setupTempError)
+                {
+                    <div class="auth-alert auth-alert-danger">
+                        <i class="bi bi-x-circle"></i>
+                        <span>@setupTempError</span>
+                    </div>
+                }
+                @if (ViewBag.ErrorSetup is string setupError)
+                {
+                    <div class="auth-alert auth-alert-danger">
+                        <i class="bi bi-x-circle"></i>
+                        <span>@setupError</span>
+                    </div>
+                }
+
+                <div class="auth-alert auth-alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span>Guarda estos datos. Esta cuenta tendra control total del sistema.</span>
+                </div>
+
+                <form asp-action="Registro" asp-controller="Auth" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label class="form-label" for="setupNombre">Nombre completo</label>
+                        <input name="Nombre" id="setupNombre" class="form-control" placeholder="Ej: Piero Leonardo" autocomplete="name" autofocus required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="setupEmail">Correo electronico</label>
+                        <input name="Email" id="setupEmail" type="email" class="form-control" placeholder="admin@restaurante.com" autocomplete="email" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="setupPass">Contrasena</label>
+                        <div class="password-field">
+                            <input name="Password" id="setupPass" type="password" class="form-control" placeholder="Minimo 8 caracteres" minlength="8" autocomplete="new-password" required />
+                            <button type="button" class="password-toggle" onclick="togglePassword('setupPass','setupPassIcon')" aria-label="Mostrar u ocultar contrasena">
+                                <i class="bi bi-eye" id="setupPassIcon"></i>
+                            </button>
+                        </div>
+                        <div class="input-help">Usa una clave que no compartas con el personal operativo.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label" for="setupPass2">Confirmar contrasena</label>
+                        <div class="password-field">
+                            <input name="ConfirmarPassword" id="setupPass2" type="password" class="form-control" placeholder="Repite tu contrasena" minlength="8" autocomplete="new-password" required />
+                            <button type="button" class="password-toggle" onclick="togglePassword('setupPass2','setupPass2Icon')" aria-label="Mostrar u ocultar contrasena">
+                                <i class="bi bi-eye" id="setupPass2Icon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-auth btn-auth-success">
+                        <i class="bi bi-check2-circle"></i>
+                        Crear cuenta y comenzar
+                    </button>
+                </form>
+            }
+            else
+            {
+                <div class="form-kicker">Acceso privado</div>
+                <h2 class="auth-title">Acceso al sistema</h2>
+                <p class="auth-copy">Continua con tu cuenta de administracion o cocina para iniciar el turno.</p>
+
+                @if (TempData["Exito"] is string loginSuccess)
+                {
+                    <div class="auth-alert auth-alert-success">
+                        <i class="bi bi-check-circle"></i>
+                        <span>@loginSuccess</span>
+                    </div>
+                }
+                @if (TempData["Error"] is string loginTempError)
+                {
+                    <div class="auth-alert auth-alert-danger">
+                        <i class="bi bi-x-circle"></i>
+                        <span>@loginTempError</span>
+                    </div>
+                }
+
+                <form asp-controller="Auth" asp-action="Login" method="post">
+                    @Html.AntiForgeryToken()
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="auth-alert auth-alert-danger">
+                            <i class="bi bi-x-circle"></i>
+                            <div>
+                                @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <div>@e.ErrorMessage</div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">Correo electronico</label>
+                        <input asp-for="Email" class="form-control" placeholder="usuario@restaurante.com" autocomplete="email" autofocus />
+                        <div class="input-help">Usa el correo registrado por administracion.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Password" class="form-label">Contrasena</label>
+                        <div class="password-field">
+                            <input asp-for="Password" type="password" id="loginPass" class="form-control" placeholder="Tu contrasena" autocomplete="current-password" />
+                            <button type="button" class="password-toggle" onclick="togglePassword('loginPass','loginPassIcon')" aria-label="Mostrar u ocultar contrasena">
+                                <i class="bi bi-eye" id="loginPassIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-auth">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        Ingresar al sistema
+                    </button>
+                </form>
+
+                <div class="auth-note">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Solo <strong>Admin</strong> y <strong>Cocina</strong> acceden desde la web. Los mozos trabajan desde la app movil Android.
+                </div>
+            }
+        </div>
+    </section>
+</main>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function togglePassword(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        const isHidden = input.type === 'password';
+        input.type = isHidden ? 'text' : 'password';
+        icon.className = isHidden ? 'bi bi-eye-slash' : 'bi bi-eye';
+    }
+
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', () => {
+            const button = form.querySelector('.btn-auth');
+            if (!button) return;
+
+            button.disabled = true;
+            button.dataset.original = button.innerHTML;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Validando acceso';
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+@model AppWebSistemaComandasDigital.Dtos.CategoriaCreateDTO
+@{
+    ViewData["Title"] = "Nueva Categoría";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex align-items-center mb-4 gap-3">
+    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+    <div>
+        <h3 class="fw-bold mb-0"><i class="bi bi-plus-circle text-success me-2"></i>Nueva Categoría</h3>
+        <p class="text-muted mb-0 small">Complete los datos para registrar la categoría</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger small py-2 mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Nombre" class="form-label fw-semibold small">Nombre <span class="text-danger">*</span></label>
+                    <input asp-for="Nombre" class="form-control" placeholder="Ej: Entradas, Bebidas, Postres" autofocus />
+                    <span asp-validation-for="Nombre" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Descripcion" class="form-label fw-semibold small">Descripción</label>
+                    <textarea asp-for="Descripcion" class="form-control" rows="3"
+                              placeholder="Descripción opcional de la categoría"></textarea>
+                    <span asp-validation-for="Descripcion" class="text-danger small"></span>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check2 me-1"></i>Guardar categoría
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

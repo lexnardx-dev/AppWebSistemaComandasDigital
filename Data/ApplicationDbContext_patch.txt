@@ -1,0 +1,3 @@
+        // DbSets del dominio
+        // Renombrado a RolesComandas para no colisionar con IdentityDbContext.Roles
+        public DbSet<Rol> RolesComandas { get; set; }

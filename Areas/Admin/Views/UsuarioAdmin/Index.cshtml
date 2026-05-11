@@ -1,0 +1,171 @@
+@model IEnumerable<AppWebSistemaComandasDigital.Models.Usuario>
+@{
+    ViewData["Title"] = "Gestión de Usuarios";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0"><i class="bi bi-people text-info me-2"></i>Gestión de Usuarios</h3>
+        <p class="text-muted mb-0 small">Administra mozos y personal de cocina</p>
+    </div>
+    <a asp-action="Create" class="btn btn-success btn-sm">
+        <i class="bi bi-person-plus me-1"></i>Nuevo usuario
+    </a>
+</div>
+
+<div class="card p-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:60px">#</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th class="text-center">Rol</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center">Registrado</th>
+                    <th class="text-end" style="width:180px">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox me-2"></i>No hay usuarios registrados.
+                        </td>
+                    </tr>
+                }
+                @foreach (var u in Model)
+                {
+                    var rolColor = u.Rol?.Nombre switch {
+                        "Admin"  => "danger",
+                        "Mozo"   => "primary",
+                        "Cocina" => "warning",
+                        _        => "secondary"
+                    };
+                    <tr class="@(!u.Activo ? "opacity-50" : "")">
+                        <td class="text-muted small">@u.Id</td>
+                        <td>
+                            <span class="fw-semibold">@u.Nombre</span>
+                            @if (!u.Activo)
+                            {
+                                <span class="badge bg-secondary ms-1 small">Inactivo</span>
+                            }
+                        </td>
+                        <td class="small text-muted">@u.Email</td>
+                        <td class="text-center">
+                            <span class="badge bg-@rolColor">@u.Rol?.Nombre</span>
+                        </td>
+                        <td class="text-center">
+                            @if (u.Activo)
+                            {
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-x-circle-fill text-secondary"></i>
+                            }
+                        </td>
+                        <td class="text-center small text-muted">
+                            @u.FechaCreacion.ToString("dd/MM/yyyy")
+                        </td>
+                        <td class="text-end">
+                            <form asp-action="ToggleActivo" asp-route-id="@u.Id"
+                                  method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit"
+                                        class="btn btn-sm action-btn @(u.Activo ? "btn-outline-warning" : "btn-outline-success") me-1"
+                                        title="@(u.Activo ? "Desactivar" : "Activar")">
+                                    <i class="bi @(u.Activo ? "bi-pause-circle" : "bi-play-circle")"></i>
+                                </button>
+                            </form>
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-secondary action-btn me-1"
+                                    title="Restablecer contraseña"
+                                    onclick="abrirResetPass(@u.Id, '@u.Nombre')">
+                                <i class="bi bi-key"></i>
+                            </button>
+                            @if (u.Rol?.Nombre != "Admin")
+                            {
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-danger action-btn"
+                                        title="Eliminar"
+                                        onclick="confirmarEliminar(@u.Id, '@u.Nombre')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Eliminar usuario
+                </h6>
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="small mb-0">¿Eliminar a <strong id="nombreUsuario"></strong>? Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="formEliminar" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalResetPass" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold">
+                    <i class="bi bi-key me-2 text-secondary"></i>Restablecer contraseña
+                </h6>
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formResetPass" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body pt-2">
+                    <p class="small mb-2">Nueva contraseña para <strong id="nombreReset"></strong>:</p>
+                    <input type="password" name="nuevaPassword" id="inputNuevaPass"
+                           class="form-control" placeholder="Mínimo 8 caracteres"
+                           minlength="8" required />
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-sm btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function confirmarEliminar(id, nombre) {
+        document.getElementById('nombreUsuario').textContent = nombre;
+        document.getElementById('formEliminar').action = `/Admin/UsuarioAdmin/Delete/${id}`;
+        new bootstrap.Modal(document.getElementById('modalEliminar')).show();
+    }
+
+    function abrirResetPass(id, nombre) {
+        document.getElementById('nombreReset').textContent = nombre;
+        document.getElementById('formResetPass').action = `/Admin/UsuarioAdmin/ResetPassword/${id}`;
+        document.getElementById('inputNuevaPass').value = '';
+        new bootstrap.Modal(document.getElementById('modalResetPass')).show();
+    }
+</script>
+}

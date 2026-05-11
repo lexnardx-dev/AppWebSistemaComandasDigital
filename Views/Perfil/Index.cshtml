@@ -1,0 +1,76 @@
+@model AppWebSistemaComandasDigital.Dtos.PerfilViewDTO
+@{
+    ViewData["Title"] = "Perfil";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0"><i class="bi bi-person-circle text-primary me-2"></i>Perfil</h3>
+        <p class="text-muted mb-0 small">Datos de tu cuenta y seguridad personal</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card surface-card p-4 h-100">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="sc-topbar-avatar" style="width:54px;height:54px;font-size:1rem">
+                    @Model.Usuario.Nombre.FirstOrDefault().ToString().ToUpper()
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">@Model.Usuario.Nombre</h5>
+                    <span class="badge bg-warning text-dark">@Model.Usuario.Rol</span>
+                </div>
+            </div>
+
+            <dl class="row small mb-0">
+                <dt class="col-4 text-muted">Correo</dt>
+                <dd class="col-8">@Model.Usuario.Email</dd>
+                <dt class="col-4 text-muted">Estado</dt>
+                <dd class="col-8">
+                    <span class="badge @(Model.Usuario.Activo ? "bg-success" : "bg-secondary")">
+                        @(Model.Usuario.Activo ? "Activo" : "Inactivo")
+                    </span>
+                </dd>
+                <dt class="col-4 text-muted">Creacion</dt>
+                <dd class="col-8">@Model.Usuario.FechaCreacion.ToString("dd/MM/yyyy")</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card p-4">
+            <h5 class="fw-bold mb-1"><i class="bi bi-shield-lock text-secondary me-2"></i>Cambiar contrasena</h5>
+            <p class="text-muted small mb-4">Actualiza tu acceso sin modificar usuarios del sistema.</p>
+
+            <form asp-action="CambiarPassword" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger small"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Password.PasswordActual" class="form-label fw-semibold small">Contrasena actual</label>
+                    <input asp-for="Password.PasswordActual" type="password" class="form-control" autocomplete="current-password" />
+                    <span asp-validation-for="Password.PasswordActual" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Password.NuevaPassword" class="form-label fw-semibold small">Nueva contrasena</label>
+                    <input asp-for="Password.NuevaPassword" type="password" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="Password.NuevaPassword" class="text-danger small"></span>
+                </div>
+                <div class="mb-4">
+                    <label asp-for="Password.ConfirmarPassword" class="form-label fw-semibold small">Confirmar nueva contrasena</label>
+                    <input asp-for="Password.ConfirmarPassword" type="password" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="Password.ConfirmarPassword" class="text-danger small"></span>
+                </div>
+
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-check2 me-1"></i>Actualizar contrasena
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
