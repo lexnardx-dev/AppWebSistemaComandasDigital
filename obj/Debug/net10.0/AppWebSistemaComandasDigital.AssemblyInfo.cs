@@ -16,7 +16,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AppWebSistemaComandasDigital")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7d465469d96db16253811ae7c9f50a7af08a8f52")]
 [assembly: System.Reflection.AssemblyProductAttribute("AppWebSistemaComandasDigital")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AppWebSistemaComandasDigital")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
