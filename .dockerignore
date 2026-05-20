@@ -1,0 +1,13 @@
+.git
+.github
+.vs
+bin
+obj
+out
+*.user
+*.suo
+*.rsuser
+*.log
+*.tmp
+Dockerfile
+.dockerignore
