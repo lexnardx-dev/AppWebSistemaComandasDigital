@@ -17,7 +17,11 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(connectionString, npgsql =>
+    {
+        npgsql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
+        npgsql.CommandTimeout(60);
+    }));
 
 // ── CORS para app móvil Android ───────────────────────────────────────
 builder.Services.AddCors(options =>
