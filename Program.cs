@@ -5,6 +5,7 @@ using AppWebSistemaComandasDigital.RealTime;
 using AppWebSistemaComandasDigital.Repositories;
 using AppWebSistemaComandasDigital.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -16,7 +17,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseNpgsql(connectionString));
 
 // ── CORS para app móvil Android ───────────────────────────────────────
 builder.Services.AddCors(options =>
@@ -88,6 +89,17 @@ builder.Services.AddScoped<JwtHelper>();
 
 // ═════════════════════════════════════════════════════════════════════
 var app = builder.Build();
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await db.Database.MigrateAsync();
+}
 // ═════════════════════════════════════════════════════════════════════
 
 if (app.Environment.IsDevelopment())
@@ -102,6 +114,13 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
+app.MapGet("/health", () => Results.Ok(new
+{
+    status = "ok",
+    app = "AppWebSistemaComandasDigital",
+    environment = app.Environment.EnvironmentName
+}));
 
 app.UseStaticFiles();
 app.UseRouting();
