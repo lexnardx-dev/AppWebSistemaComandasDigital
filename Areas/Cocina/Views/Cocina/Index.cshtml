@@ -5,26 +5,22 @@
     var enCocina   = ViewBag.EnCocina   as IEnumerable<AppWebSistemaComandasDigital.Dtos.PedidoDTO> ?? [];
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-heading">
     <div>
         <h3 class="fw-bold mb-0"><i class="bi bi-fire text-danger me-2"></i>Monitor de Cocina</h3>
-        <p class="text-muted mb-0 small">Pedidos en tiempo real</p>
+        <p class="page-subtitle">Pedidos en tiempo real con control de avance por estado</p>
     </div>
     <span class="badge bg-danger px-3 py-2 fs-6">
         <i class="bi bi-circle-fill me-1" style="font-size:.5rem"></i>En vivo
     </span>
 </div>
 
-<div class="row g-4">
-
-    <!-- ── PENDIENTES ─────────────────────────────────────────── -->
-    <div class="col-md-6">
+<div class="row g-4 kds-board">
+    <div class="col-md-6 kds-column">
         <div class="card">
-            <div class="card-header bg-secondary text-white fw-bold d-flex align-items-center gap-2">
-                <i class="bi bi-hourglass-split"></i>Pendientes
-                <span class="badge bg-light text-dark ms-auto" id="cntPendiente">
-                    @pendientes.Count()
-                </span>
+            <div class="card-header fw-bold d-flex align-items-center gap-2">
+                <i class="bi bi-hourglass-split text-secondary"></i>Pendientes
+                <span class="badge bg-secondary ms-auto" id="cntPendiente">@pendientes.Count()</span>
             </div>
             <div class="card-body p-2" id="colPendiente">
                 @if (!pendientes.Any())
@@ -36,10 +32,15 @@
                 }
                 @foreach (var p in pendientes)
                 {
-                    <div class="card pedido-card pedido-pendiente mb-2 p-3" id="pedido-@p.Id">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="fw-bold">Mesa @p.MesaNumero &mdash; #@p.Id</span>
-                            <small class="text-muted">@p.FechaCreacion.ToString("HH:mm")</small>
+                    <div class="card pedido-card pedido-pendiente mb-2 p-3" id="pedido-@p.Id" data-created="@p.FechaCreacion.ToString("o")">
+                        <div class="d-flex justify-content-between align-items-start mb-2 gap-2">
+                            <div>
+                                <span class="fw-bold">Mesa @p.MesaNumero - #@p.Id</span>
+                                <div class="kds-order-meta mt-1">
+                                    <span class="kds-timer"><i class="bi bi-stopwatch"></i><span class="elapsed-time">--</span></span>
+                                    <small class="text-muted">Recibido @p.FechaCreacion.ToString("HH:mm")</small>
+                                </div>
+                            </div>
                         </div>
                         @foreach (var d in p.Detalles)
                         {
@@ -48,19 +49,19 @@
                                 <strong>x@(d.Cantidad)</strong> @d.PlatoNombre
                                 @if (!string.IsNullOrEmpty(d.Notas))
                                 {
-                                    <em class="text-muted"> &mdash; @d.Notas</em>
+                                    <em class="text-muted"> - @d.Notas</em>
                                 }
                             </div>
                         }
                         @if (!string.IsNullOrEmpty(p.Observaciones))
                         {
-                            <div class="small text-muted mt-1">
+                            <div class="small text-muted mt-2">
                                 <i class="bi bi-chat-left-text me-1"></i>@p.Observaciones
                             </div>
                         }
-                        <button class="btn btn-sm btn-warning w-100 mt-2 fw-semibold"
+                        <button class="btn btn-sm btn-warning w-100 mt-3 fw-semibold"
                                 onclick="cambiarEstado(@p.Id, 'EnCocina')">
-                            <i class="bi bi-fire me-1"></i>Iniciar preparación
+                            <i class="bi bi-fire me-1"></i>Iniciar preparacion
                         </button>
                     </div>
                 }
@@ -68,30 +69,31 @@
         </div>
     </div>
 
-    <!-- ── EN PREPARACIÓN ────────────────────────────────────── -->
-    <div class="col-md-6">
+    <div class="col-md-6 kds-column">
         <div class="card">
-            <div class="card-header fw-bold text-white d-flex align-items-center gap-2"
-                 style="background:#fd7e14">
-                <i class="bi bi-fire"></i>En preparación
-                <span class="badge bg-light text-dark ms-auto" id="cntCocina">
-                    @enCocina.Count()
-                </span>
+            <div class="card-header fw-bold d-flex align-items-center gap-2">
+                <i class="bi bi-fire text-warning"></i>En preparacion
+                <span class="badge bg-warning text-dark ms-auto" id="cntCocina">@enCocina.Count()</span>
             </div>
             <div class="card-body p-2" id="colCocina">
                 @if (!enCocina.Any())
                 {
                     <div class="text-center text-muted py-4 small" id="emptyCocina">
                         <i class="bi bi-egg-fried fs-3 d-block mb-1 text-warning"></i>
-                        Nada en preparación
+                        Nada en preparacion
                     </div>
                 }
                 @foreach (var p in enCocina)
                 {
-                    <div class="card pedido-card pedido-en-cocina mb-2 p-3" id="pedido-@p.Id">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="fw-bold">Mesa @p.MesaNumero &mdash; #@p.Id</span>
-                            <small class="text-muted">@p.FechaCreacion.ToString("HH:mm")</small>
+                    <div class="card pedido-card pedido-en-cocina mb-2 p-3" id="pedido-@p.Id" data-created="@p.FechaCreacion.ToString("o")">
+                        <div class="d-flex justify-content-between align-items-start mb-2 gap-2">
+                            <div>
+                                <span class="fw-bold">Mesa @p.MesaNumero - #@p.Id</span>
+                                <div class="kds-order-meta mt-1">
+                                    <span class="kds-timer"><i class="bi bi-stopwatch"></i><span class="elapsed-time">--</span></span>
+                                    <small class="text-muted">Recibido @p.FechaCreacion.ToString("HH:mm")</small>
+                                </div>
+                            </div>
                         </div>
                         @foreach (var d in p.Detalles)
                         {
@@ -100,17 +102,17 @@
                                 <strong>x@(d.Cantidad)</strong> @d.PlatoNombre
                                 @if (!string.IsNullOrEmpty(d.Notas))
                                 {
-                                    <em class="text-muted"> &mdash; @d.Notas</em>
+                                    <em class="text-muted"> - @d.Notas</em>
                                 }
                             </div>
                         }
                         @if (!string.IsNullOrEmpty(p.Observaciones))
                         {
-                            <div class="small text-muted mt-1">
+                            <div class="small text-muted mt-2">
                                 <i class="bi bi-chat-left-text me-1"></i>@p.Observaciones
                             </div>
                         }
-                        <button class="btn btn-sm btn-primary w-100 mt-2 fw-semibold"
+                        <button class="btn btn-sm btn-primary w-100 mt-3 fw-semibold"
                                 onclick="cambiarEstado(@p.Id, 'Listo')">
                             <i class="bi bi-check2-circle me-1"></i>Marcar listo
                         </button>
@@ -123,30 +125,42 @@
 
 @section Scripts {
 <script>
+    function actualizarTiempos() {
+        document.querySelectorAll('[data-created]').forEach(card => {
+            const created = new Date(card.dataset.created);
+            const diffMs = Date.now() - created.getTime();
+            const totalMin = Math.max(0, Math.floor(diffMs / 60000));
+            const horas = Math.floor(totalMin / 60);
+            const minutos = totalMin % 60;
+            const label = horas > 0 ? `${horas}h ${minutos}m` : `${minutos}m`;
+            const target = card.querySelector('.elapsed-time');
+            if (target) target.textContent = label;
+        });
+    }
+
     async function cambiarEstado(id, estado) {
         const btn = event.currentTarget;
         const textoOriginal = btn.innerHTML;
-        btn.disabled  = true;
+        btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Actualizando...';
 
         try {
-            const res  = await fetch(`/api/pedidos/${id}/estado`, {
-                method:  'PATCH',
+            const res = await fetch(`/api/pedidos/${id}/estado`, {
+                method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body:    JSON.stringify({ estado: estado })
+                body: JSON.stringify({ estado: estado })
             });
             const data = await res.json();
 
-            if (data.exitoso) {
-                location.reload();
-            } else {
+            if (data.exitoso) location.reload();
+            else {
                 alert('Error: ' + data.mensaje);
-                btn.disabled  = false;
+                btn.disabled = false;
                 btn.innerHTML = textoOriginal;
             }
         } catch (e) {
-            alert('Error de conexión.');
-            btn.disabled  = false;
+            alert('Error de conexion.');
+            btn.disabled = false;
             btn.innerHTML = textoOriginal;
         }
     }
@@ -154,8 +168,11 @@
     const conn = new signalR.HubConnectionBuilder()
         .withUrl("/hubs/pedidos").withAutomaticReconnect().build();
 
-    conn.on("NuevoPedido",             () => location.reload());
+    conn.on("NuevoPedido", () => location.reload());
     conn.on("EstadoPedidoActualizado", () => location.reload());
+
+    actualizarTiempos();
+    setInterval(actualizarTiempos, 60000);
 
     conn.start()
         .then(() => conn.invoke("UnirseAGrupo", "Cocina"))

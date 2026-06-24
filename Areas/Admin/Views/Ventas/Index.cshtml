@@ -1,12 +1,33 @@
 @model AppWebSistemaComandasDigital.Dtos.VentasDashboardDTO
+@using System.Text.Json
 @{
     ViewData["Title"] = "Ventas";
+
+    var hoy = DateTime.Today;
+    var inicioSemana = hoy.AddDays(-(int)hoy.DayOfWeek + (hoy.DayOfWeek == DayOfWeek.Sunday ? -6 : 1));
+    var inicioMes = new DateTime(hoy.Year, hoy.Month, 1);
+
+    var topLabels = Model.TopPlatos.Select(p => p.Nombre).ToList();
+    var topCantidades = Model.TopPlatos.Select(p => p.Cantidad).ToList();
+    var topTotales = Model.TopPlatos.Select(p => p.Total).ToList();
+    var ventasPorDia = Model.UltimasVentas
+        .GroupBy(v => v.FechaCreacion.Date)
+        .OrderBy(g => g.Key)
+        .Select(g => new { Fecha = g.Key.ToString("dd/MM"), Total = g.Sum(x => x.Total) })
+        .ToList();
+    var ventasLabels = ventasPorDia.Select(v => v.Fecha).ToList();
+    var ventasTotales = ventasPorDia.Select(v => v.Total).ToList();
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-heading">
     <div>
         <h3 class="fw-bold mb-0"><i class="bi bi-graph-up-arrow text-success me-2"></i>Ventas</h3>
-        <p class="text-muted mb-0 small">Resumen comercial basado solo en pedidos entregados</p>
+        <p class="page-subtitle">Resumen comercial basado solo en pedidos entregados</p>
+    </div>
+    <div class="quick-filters">
+        <a class="quick-filter" asp-action="Index" asp-route-desde="@hoy.ToString("yyyy-MM-dd")" asp-route-hasta="@hoy.ToString("yyyy-MM-dd")"><i class="bi bi-calendar-day"></i>Hoy</a>
+        <a class="quick-filter" asp-action="Index" asp-route-desde="@inicioSemana.ToString("yyyy-MM-dd")" asp-route-hasta="@hoy.ToString("yyyy-MM-dd")"><i class="bi bi-calendar-week"></i>Semana</a>
+        <a class="quick-filter" asp-action="Index" asp-route-desde="@inicioMes.ToString("yyyy-MM-dd")" asp-route-hasta="@hoy.ToString("yyyy-MM-dd")"><i class="bi bi-calendar3"></i>Mes</a>
     </div>
 </div>
 
@@ -74,22 +95,54 @@
     </div>
 </div>
 
+<div class="row g-4 mb-4">
+    <div class="col-xl-7">
+        <div class="chart-panel h-100">
+            <div class="analytics-card-title">
+                <span><i class="bi bi-graph-up text-success me-2"></i>Evolucion de ventas</span>
+                <small class="text-muted">Segun ventas cerradas visibles</small>
+            </div>
+            <div class="chart-box">
+                <canvas id="ventasLineChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-5">
+        <div class="chart-panel h-100">
+            <div class="analytics-card-title">
+                <span><i class="bi bi-bar-chart text-primary me-2"></i>Platos mas vendidos</span>
+                <small class="text-muted">Unidades</small>
+            </div>
+            <div class="chart-box-sm">
+                <canvas id="topPlatosChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row g-4">
     <div class="col-lg-5">
         <div class="card p-0 h-100">
             <div class="card-header bg-transparent px-3 py-3">
                 <i class="bi bi-trophy text-warning me-2"></i>
-                <span class="fw-bold">Platos mas vendidos</span>
+                <span class="fw-bold">Ranking comercial</span>
             </div>
             <div class="list-group list-group-flush">
                 @foreach (var plato in Model.TopPlatos)
                 {
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="fw-semibold">@plato.Nombre</div>
-                            <small class="text-muted">@plato.Cantidad unidades</small>
+                    var maxCantidad = Model.TopPlatos.Any() ? Math.Max(1, Model.TopPlatos.Max(p => p.Cantidad)) : 1;
+                    var pct = Math.Round((double)plato.Cantidad * 100 / maxCantidad);
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <div class="fw-semibold">@plato.Nombre</div>
+                                <small class="text-muted">@plato.Cantidad unidades</small>
+                            </div>
+                            <span class="fw-bold text-success">S/ @plato.Total.ToString("F2")</span>
                         </div>
-                        <span class="fw-bold text-success">S/ @plato.Total.ToString("F2")</span>
+                        <div class="ops-progress" style="height:8px">
+                            <div class="ops-segment ops-cooking" style="width:@pct%"></div>
+                        </div>
                     </div>
                 }
                 @if (!Model.TopPlatos.Any())
@@ -109,8 +162,8 @@
                 <span class="fw-bold">Ultimas ventas</span>
             </div>
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+                <table class="table table-hover table-modern align-middle mb-0">
+                    <thead>
                         <tr>
                             <th>#</th>
                             <th>Mesa</th>
@@ -142,3 +195,55 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+    const ventasLabels = @Html.Raw(JsonSerializer.Serialize(ventasLabels));
+    const ventasTotales = @Html.Raw(JsonSerializer.Serialize(ventasTotales));
+    const topLabels = @Html.Raw(JsonSerializer.Serialize(topLabels));
+    const topCantidades = @Html.Raw(JsonSerializer.Serialize(topCantidades));
+
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { display: false }, ticks: { color: '#64748b' } },
+            y: { beginAtZero: true, grid: { color: '#eef2f7' }, ticks: { color: '#64748b' } }
+        }
+    };
+
+    new Chart(document.getElementById('ventasLineChart'), {
+        type: 'line',
+        data: {
+            labels: ventasLabels.length ? ventasLabels : ['Sin datos'],
+            datasets: [{
+                data: ventasTotales.length ? ventasTotales : [0],
+                borderColor: '#059669',
+                backgroundColor: 'rgba(5,150,105,.14)',
+                borderWidth: 3,
+                tension: .35,
+                fill: true,
+                pointRadius: 4,
+                pointBackgroundColor: '#059669'
+            }]
+        },
+        options: commonOptions
+    });
+
+    new Chart(document.getElementById('topPlatosChart'), {
+        type: 'bar',
+        data: {
+            labels: topLabels.length ? topLabels : ['Sin datos'],
+            datasets: [{
+                data: topCantidades.length ? topCantidades : [0],
+                backgroundColor: ['#2563eb', '#059669', '#d97706', '#0284c7', '#7c3aed', '#dc2626', '#475569', '#0f766e'],
+                borderRadius: 8,
+                maxBarThickness: 34
+            }]
+        },
+        options: { ...commonOptions, indexAxis: 'y' }
+    });
+</script>
+}

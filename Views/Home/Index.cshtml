@@ -15,6 +15,13 @@
     var totalVendido = (decimal)(ViewBag.TotalVendido ?? 0m);
     var totalPlatos = (int)(ViewBag.TotalPlatos ?? 0);
     var ultimosPedidos = ViewBag.UltimosPedidos as List<PedidoDTO> ?? [];
+
+    var pedidosActivos = pedidosPendientes + pedidosEnCocina + pedidosListos;
+    var pctLibres = totalMesas == 0 ? 0 : (int)Math.Round((double)mesasLibres * 100 / totalMesas);
+    var pctOcupadas = totalMesas == 0 ? 0 : 100 - pctLibres;
+    var pctPendientes = pedidosActivos == 0 ? 0 : (int)Math.Round((double)pedidosPendientes * 100 / pedidosActivos);
+    var pctCocina = pedidosActivos == 0 ? 0 : (int)Math.Round((double)pedidosEnCocina * 100 / pedidosActivos);
+    var pctListos = pedidosActivos == 0 ? 0 : Math.Max(0, 100 - pctPendientes - pctCocina);
 }
 
 <div class="home-hero mb-4">
@@ -39,7 +46,7 @@
             <div class="metric-icon"><i class="bi bi-receipt-cutoff"></i></div>
             <div>
                 <p>Pedidos activos</p>
-                <strong>@(pedidosPendientes + pedidosEnCocina + pedidosListos)</strong>
+                <strong>@pedidosActivos</strong>
                 <span>@pedidosPendientes pendientes</span>
             </div>
         </div>
@@ -76,6 +83,51 @@
     </div>
 </div>
 
+<div class="analytics-grid mb-4">
+    <div class="analytics-card">
+        <div class="analytics-card-title">
+            <span><i class="bi bi-activity text-primary me-2"></i>Lectura rapida del turno</span>
+            <span class="badge rounded-pill bg-light text-dark">Tiempo real</span>
+        </div>
+        <div class="ops-bars">
+            <div>
+                <div class="ops-bar-label"><span>Ocupacion de mesas</span><strong>@pctOcupadas%</strong></div>
+                <div class="ops-progress" aria-label="Ocupacion de mesas">
+                    <div class="ops-segment ops-free" style="width:@pctLibres%"></div>
+                    <div class="ops-segment ops-busy" style="width:@pctOcupadas%"></div>
+                </div>
+                <div class="d-flex gap-3 mt-2 small text-muted">
+                    <span><i class="bi bi-circle-fill text-success me-1"></i>@mesasLibres libres</span>
+                    <span><i class="bi bi-circle-fill text-danger me-1"></i>@mesasOcupadas ocupadas</span>
+                </div>
+            </div>
+            <div>
+                <div class="ops-bar-label"><span>Flujo de pedidos activos</span><strong>@pedidosActivos comandas</strong></div>
+                <div class="ops-progress" aria-label="Estados de pedidos">
+                    <div class="ops-segment ops-pending" style="width:@pctPendientes%"></div>
+                    <div class="ops-segment ops-cooking" style="width:@pctCocina%"></div>
+                    <div class="ops-segment ops-ready" style="width:@pctListos%"></div>
+                </div>
+                <div class="d-flex flex-wrap gap-3 mt-2 small text-muted">
+                    <span><i class="bi bi-circle-fill text-secondary me-1"></i>@pedidosPendientes pendientes</span>
+                    <span><i class="bi bi-circle-fill text-warning me-1"></i>@pedidosEnCocina en cocina</span>
+                    <span><i class="bi bi-circle-fill text-primary me-1"></i>@pedidosListos listos</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="analytics-card">
+        <div class="analytics-card-title">
+            <span><i class="bi bi-lightning-charge text-warning me-2"></i>Acciones clave</span>
+        </div>
+        <div class="d-grid gap-2">
+            <a asp-controller="Pedido" asp-action="Crear" class="btn btn-primary text-start"><i class="bi bi-plus-circle me-2"></i>Registrar nuevo pedido</a>
+            <a asp-area="Cocina" asp-controller="Cocina" asp-action="Index" class="btn btn-outline-warning text-start"><i class="bi bi-fire me-2"></i>Ver monitor de cocina</a>
+            <a asp-area="Admin" asp-controller="Ventas" asp-action="Index" class="btn btn-outline-success text-start"><i class="bi bi-graph-up-arrow me-2"></i>Revisar ventas</a>
+        </div>
+    </div>
+</div>
+
 <div class="card surface-card p-0">
     <div class="card-header bg-transparent border-bottom px-3 py-3 d-flex align-items-center gap-2">
         <i class="bi bi-activity text-warning"></i>
@@ -96,8 +148,8 @@
     else
     {
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+            <table class="table table-hover table-modern align-middle mb-0">
+                <thead>
                     <tr>
                         <th style="width:70px">#</th>
                         <th>Mesa</th>
@@ -110,17 +162,19 @@
                 <tbody>
                     @foreach (var p in ultimosPedidos)
                     {
-                        var badgeEstado = p.Estado switch {
-                            "Pendiente" => "secondary",
-                            "EnCocina" => "warning",
-                            "Listo" => "primary",
-                            _ => "secondary"
+                        var estadoClass = p.Estado switch {
+                            "Pendiente" => "status-pending",
+                            "EnCocina" => "status-cooking",
+                            "Listo" => "status-ready",
+                            "Entregado" => "status-delivered",
+                            "Cancelado" => "status-cancelled",
+                            _ => "status-pending"
                         };
                         <tr>
                             <td class="fw-bold text-muted small">#@p.Id</td>
                             <td><i class="bi bi-table me-1 text-secondary"></i>@p.MesaNumero</td>
                             <td class="small">@p.UsuarioNombre</td>
-                            <td><span class="badge bg-@badgeEstado">@p.Estado</span></td>
+                            <td><span class="status-pill @estadoClass">@p.Estado</span></td>
                             <td class="text-end fw-semibold text-success small">S/ @p.Total.ToString("F2")</td>
                             <td class="text-end">
                                 <a asp-controller="Pedido" asp-action="Detalle" asp-route-id="@p.Id"
