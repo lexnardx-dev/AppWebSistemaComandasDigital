@@ -1,4 +1,4 @@
-@model AppWebSistemaComandasDigital.Dtos.VentasDashboardDTO
+﻿@model AppWebSistemaComandasDigital.Dtos.VentasDashboardDTO
 @using System.Text.Json
 @{
     ViewData["Title"] = "Ventas";
@@ -6,6 +6,11 @@
     var hoy = DateTime.Today;
     var inicioSemana = hoy.AddDays(-(int)hoy.DayOfWeek + (hoy.DayOfWeek == DayOfWeek.Sunday ? -6 : 1));
     var inicioMes = new DateTime(hoy.Year, hoy.Month, 1);
+    var filtroDesde = Model.Filtro.Desde?.Date;
+    var filtroHasta = Model.Filtro.Hasta?.Date;
+    var filtroHoyActivo = filtroDesde == hoy && filtroHasta == hoy;
+    var filtroSemanaActivo = filtroDesde == inicioSemana && filtroHasta == hoy;
+    var filtroMesActivo = filtroDesde == inicioMes && filtroHasta == hoy;
 
     var topLabels = Model.TopPlatos.Select(p => p.Nombre).ToList();
     var topCantidades = Model.TopPlatos.Select(p => p.Cantidad).ToList();
@@ -25,9 +30,9 @@
         <p class="page-subtitle">Resumen comercial basado solo en pedidos entregados</p>
     </div>
     <div class="quick-filters">
-        <a class="quick-filter" asp-action="Index" asp-route-desde="@hoy.ToString("yyyy-MM-dd")" asp-route-hasta="@hoy.ToString("yyyy-MM-dd")"><i class="bi bi-calendar-day"></i>Hoy</a>
-        <a class="quick-filter" asp-action="Index" asp-route-desde="@inicioSemana.ToString("yyyy-MM-dd")" asp-route-hasta="@hoy.ToString("yyyy-MM-dd")"><i class="bi bi-calendar-week"></i>Semana</a>
-        <a class="quick-filter" asp-action="Index" asp-route-desde="@inicioMes.ToString("yyyy-MM-dd")" asp-route-hasta="@hoy.ToString("yyyy-MM-dd")"><i class="bi bi-calendar3"></i>Mes</a>
+        <a class="quick-filter @(filtroHoyActivo ? "active" : "")" asp-action="Index" asp-route-desde="@hoy.ToString("yyyy-MM-dd")" asp-route-hasta="@hoy.ToString("yyyy-MM-dd")"><i class="bi bi-calendar-day"></i>Hoy</a>
+        <a class="quick-filter @(filtroSemanaActivo ? "active" : "")" asp-action="Index" asp-route-desde="@inicioSemana.ToString("yyyy-MM-dd")" asp-route-hasta="@hoy.ToString("yyyy-MM-dd")"><i class="bi bi-calendar-week"></i>Semana</a>
+        <a class="quick-filter @(filtroMesActivo ? "active" : "")" asp-action="Index" asp-route-desde="@inicioMes.ToString("yyyy-MM-dd")" asp-route-hasta="@hoy.ToString("yyyy-MM-dd")"><i class="bi bi-calendar3"></i>Mes</a>
     </div>
 </div>
 

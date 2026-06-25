@@ -15,8 +15,24 @@
 </div>
 
 <div class="card p-0">
+    <div class="table-toolbar">
+        <div>
+            <div class="fw-bold small">Personal registrado</div>
+            <div class="text-muted small">Busca por nombre, correo o filtra por rol</div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <input id="filtroUsuarios" class="form-control form-control-sm table-search" placeholder="Buscar usuario..." />
+            <select id="filtroRolUsuarios" class="form-select form-select-sm table-filter-select">
+                <option value="">Todos los roles</option>
+                <option value="admin">Admin</option>
+                <option value="mozo">Mozo</option>
+                <option value="cocina">Cocina</option>
+            </select>
+        </div>
+    </div>
+    <div id="emptyUsuariosFilter" class="table-empty-filter">No hay usuarios que coincidan con el filtro.</div>
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table id="tablaUsuarios" class="table table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
                     <th style="width:60px">#</th>
@@ -45,7 +61,7 @@
                         "Cocina" => "warning",
                         _        => "secondary"
                     };
-                    <tr class="@(!u.Activo ? "opacity-50" : "")">
+                    <tr data-filter-row class="@(!u.Activo ? "opacity-50" : "")">
                         <td class="text-muted small">@u.Id</td>
                         <td>
                             <span class="fw-semibold">@u.Nombre</span>
@@ -155,6 +171,32 @@
 
 @section Scripts {
 <script>
+        function configurarFiltroTabla(searchId, selectId, tableId, emptyId) {
+        const search = document.getElementById(searchId);
+        const select = document.getElementById(selectId);
+        const table = document.getElementById(tableId);
+        const empty = document.getElementById(emptyId);
+        if (!search || !table) return;
+
+        const filtrar = () => {
+            const q = search.value.trim().toLowerCase();
+            const selected = select ? select.value : '';
+            let visibles = 0;
+            table.querySelectorAll('tbody tr[data-filter-row]').forEach(row => {
+                const text = row.innerText.toLowerCase();
+                const visible = (!q || text.includes(q)) && (!selected || text.includes(selected));
+                row.classList.toggle('data-filter-hidden', !visible);
+                if (visible) visibles++;
+            });
+            if (empty) empty.style.display = visibles === 0 ? 'block' : 'none';
+        };
+
+        search.addEventListener('input', filtrar);
+        if (select) select.addEventListener('change', filtrar);
+    }
+
+    configurarFiltroTabla('filtroUsuarios', 'filtroRolUsuarios', 'tablaUsuarios', 'emptyUsuariosFilter');
+
     function confirmarEliminar(id, nombre) {
         document.getElementById('nombreUsuario').textContent = nombre;
         document.getElementById('formEliminar').action = `/Admin/UsuarioAdmin/Delete/${id}`;
@@ -169,3 +211,6 @@
     }
 </script>
 }
+
+
+

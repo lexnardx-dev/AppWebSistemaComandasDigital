@@ -17,8 +17,23 @@
 </div>
 
 <div class="card p-0">
+    <div class="table-toolbar">
+        <div>
+            <div class="fw-bold small">Categorías del menú</div>
+            <div class="text-muted small">Busca por nombre, descripcion o estado</div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <input id="filtroCategorias" class="form-control form-control-sm table-search" placeholder="Buscar categoría..." />
+            <select id="filtroEstadoCategorias" class="form-select form-select-sm table-filter-select">
+                <option value="">Todos los estados</option>
+                <option value="activa">Activas</option>
+                <option value="inactiva">Inactivas</option>
+            </select>
+        </div>
+    </div>
+    <div id="emptyCategoriasFilter" class="table-empty-filter">No hay categorías que coincidan con el filtro.</div>
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table id="tablaCategorias" class="table table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
                     <th style="width:60px">#</th>
@@ -39,10 +54,10 @@
                 }
                 @foreach (var cat in Model)
                 {
-                    <tr>
+                    <tr data-filter-row>
                         <td class="text-muted small">@cat.Id</td>
                         <td class="fw-semibold">@cat.Nombre</td>
-                        <td class="text-muted small">@(cat.Descripcion ?? "—")</td>
+                        <td class="text-muted small">@(cat.Descripcion ?? "-")</td>
                         <td class="text-center">
                             @if (cat.Activa)
                             {
@@ -95,7 +110,7 @@
     </div>
 </div>
 
-<!-- Modal 2: Categoría con platos — elegir entre desactivar o eliminar definitivamente -->
+<!-- Modal 2: Categoría con platos - elegir entre desactivar o eliminar definitivamente -->
 <div class="modal fade" id="modalOpciones" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -142,6 +157,32 @@
 
 @section Scripts {
 <script>
+        function configurarFiltroTabla(searchId, selectId, tableId, emptyId) {
+        const search = document.getElementById(searchId);
+        const select = document.getElementById(selectId);
+        const table = document.getElementById(tableId);
+        const empty = document.getElementById(emptyId);
+        if (!search || !table) return;
+
+        const filtrar = () => {
+            const q = search.value.trim().toLowerCase();
+            const selected = select ? select.value : '';
+            let visibles = 0;
+            table.querySelectorAll('tbody tr[data-filter-row]').forEach(row => {
+                const text = row.innerText.toLowerCase();
+                const visible = (!q || text.includes(q)) && (!selected || text.includes(selected));
+                row.classList.toggle('data-filter-hidden', !visible);
+                if (visible) visibles++;
+            });
+            if (empty) empty.style.display = visibles === 0 ? 'block' : 'none';
+        };
+
+        search.addEventListener('input', filtrar);
+        if (select) select.addEventListener('change', filtrar);
+    }
+
+    configurarFiltroTabla('filtroCategorias', 'filtroEstadoCategorias', 'tablaCategorias', 'emptyCategoriasFilter');
+
     function confirmarEliminar(id, nombre) {
         document.getElementById('nombreCategoria').textContent = nombre;
         document.getElementById('formEliminar').action = `/Admin/Categoria/Delete/${id}`;
@@ -162,3 +203,8 @@
     }
 </script>
 }
+
+
+
+
+

@@ -8,7 +8,7 @@ namespace AppWebSistemaComandasDigital.Repositories
     {
         public async Task<IEnumerable<Categoria>> GetAllAsync() =>
             await context.Categorias.AsNoTracking()
-                .OrderBy(c => c.Nombre)
+                .OrderBy(c => c.Id)
                 .ToListAsync();
 
         public async Task<Categoria?> GetByIdAsync(int id) =>
@@ -22,7 +22,7 @@ namespace AppWebSistemaComandasDigital.Repositories
         public async Task<IEnumerable<Categoria>> GetActivasAsync() =>
             await context.Categorias.AsNoTracking()
                 .Where(c => c.Activa)
-                .OrderBy(c => c.Nombre)
+                .OrderBy(c => c.Id)
                 .ToListAsync();
 
         public async Task<bool> TienePlatosAsync(int id) =>

@@ -9,6 +9,7 @@ namespace AppWebSistemaComandasDigital.Repositories
         public async Task<IEnumerable<Usuario>> GetAllAsync() =>
             await context.Usuarios.AsNoTracking()
                 .Include(u => u.Rol)
+                .OrderBy(u => u.Id)
                 .ToListAsync();
 
         public async Task<Usuario?> GetByIdAsync(int id) =>

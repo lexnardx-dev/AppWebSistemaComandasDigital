@@ -1,12 +1,12 @@
 @model AppWebSistemaComandasDigital.Dtos.ConfiguracionRestauranteDTO
 @{
-    ViewData["Title"] = "Configuracion";
+    ViewData["Title"] = "Configuración";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold mb-0"><i class="bi bi-sliders text-warning me-2"></i>Configuracion</h3>
-        <p class="text-muted mb-0 small">Datos basicos del restaurante y parametros visibles del sistema</p>
+        <h3 class="fw-bold mb-0"><i class="bi bi-sliders text-warning me-2"></i>Configuración</h3>
+        <p class="text-muted mb-0 small">Datos básicos del restaurante y parámetros visibles del sistema</p>
     </div>
 </div>
 
@@ -28,11 +28,11 @@
                         <input asp-for="Ruc" class="form-control" placeholder="Opcional" />
                     </div>
                     <div class="col-md-8">
-                        <label asp-for="Direccion" class="form-label fw-semibold small">Direccion</label>
+                        <label asp-for="Direccion" class="form-label fw-semibold small">Dirección</label>
                         <input asp-for="Direccion" class="form-control" placeholder="Av. Principal 123" />
                     </div>
                     <div class="col-md-4">
-                        <label asp-for="Telefono" class="form-label fw-semibold small">Telefono</label>
+                        <label asp-for="Telefono" class="form-label fw-semibold small">Teléfono</label>
                         <input asp-for="Telefono" class="form-control" placeholder="+51 999 999 999" />
                     </div>
                     <div class="col-md-3">
@@ -46,7 +46,7 @@
                         <span asp-validation-for="IgvPorcentaje" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6">
-                        <label asp-for="HorarioAtencion" class="form-label fw-semibold small">Horario de atencion</label>
+                        <label asp-for="HorarioAtencion" class="form-label fw-semibold small">Horario de atención</label>
                         <input asp-for="HorarioAtencion" class="form-control" placeholder="Lun-Dom 12:00 - 23:00" />
                     </div>
                     <div class="col-md-9">
@@ -62,7 +62,7 @@
 
                 <div class="d-flex gap-2 mt-4">
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check2 me-1"></i>Guardar configuracion
+                        <i class="bi bi-check2 me-1"></i>Guardar configuración
                     </button>
                 </div>
             </form>
@@ -87,8 +87,8 @@
                 </div>
             </div>
             <div class="small text-muted">
-                <div class="mb-2"><i class="bi bi-geo-alt me-2"></i>@(Model.Direccion ?? "Direccion no registrada")</div>
-                <div class="mb-2"><i class="bi bi-telephone me-2"></i>@(Model.Telefono ?? "Telefono no registrado")</div>
+                <div class="mb-2"><i class="bi bi-geo-alt me-2"></i>@(Model.Direccion ?? "Dirección no registrada")</div>
+                <div class="mb-2"><i class="bi bi-telephone me-2"></i>@(Model.Telefono ?? "Teléfono no registrado")</div>
                 <div class="mb-2"><i class="bi bi-receipt me-2"></i>IGV @Model.IgvPorcentaje.ToString("F2")%</div>
                 <div><i class="bi bi-currency-dollar me-2"></i>Moneda @Model.Moneda</div>
             </div>

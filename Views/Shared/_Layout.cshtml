@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] — Comandas</title>
+    <title>@ViewData["Title"] - Comandas</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -21,9 +21,9 @@
     var isCocina    = User.HasClaim("rol_nombre", "Cocina");
 }
 
-<!-- ══════════════════════════════════════════════════════════
+<!-- ==========================================================
      SIDEBAR
-     ══════════════════════════════════════════════════════════ -->
+     ========================================================== -->
 <aside class="sc-sidebar" id="sidebar">
 
     <!-- Brand -->
@@ -40,7 +40,7 @@
     <!-- Navegación -->
     <nav class="sc-nav">
 
-        <!-- ── GENERAL ──────────────────────────────────────── -->
+        <!-- -- GENERAL ---------------------------------------- -->
         <div class="sc-nav-section">
             <div class="sc-nav-label">General</div>
         </div>
@@ -69,7 +69,7 @@
             <span>Mesas</span>
         </a>
 
-        <!-- ── OPERACIONES ───────────────────────────────────── -->
+        <!-- -- OPERACIONES ------------------------------------- -->
         @if (isAdmin || isCocina)
         {
             <div class="sc-nav-section">
@@ -98,7 +98,7 @@
             }
         }
 
-        <!-- ── GESTIÓN (solo Admin) ──────────────────────────── -->
+        <!-- -- GESTIÓN (solo Admin) ---------------------------- -->
         @if (isAdmin)
         {
             <div class="sc-nav-section">
@@ -129,7 +129,7 @@
                 <span>Usuarios</span>
             </a>
 
-            <!-- ── SISTEMA ───────────────────────────────────── -->
+            <!-- -- SISTEMA ------------------------------------- -->
             <div class="sc-nav-section">
                 <div class="sc-nav-label">Sistema</div>
             </div>
@@ -176,9 +176,9 @@
 
 </aside>
 
-<!-- ══════════════════════════════════════════════════════════
+<!-- ==========================================================
      MAIN
-     ══════════════════════════════════════════════════════════ -->
+     ========================================================== -->
 <div class="sc-main" id="scMain">
 
     <!-- TOPBAR -->
@@ -233,12 +233,38 @@
     }
 
     // Toggle sidebar
-    document.getElementById('sidebarToggle').addEventListener('click', () => {
-        document.getElementById('sidebar').classList.toggle('collapsed');
-        document.getElementById('scMain').classList.toggle('expanded');
+    const sidebar = document.getElementById('sidebar');
+    const scMain = document.getElementById('scMain');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const isMobileLayout = () => window.matchMedia('(max-width: 768px)').matches;
+
+    sidebarToggle.addEventListener('click', () => {
+        if (isMobileLayout()) {
+            sidebar.classList.toggle('mobile-open');
+            document.body.classList.toggle('sc-sidebar-open', sidebar.classList.contains('mobile-open'));
+            return;
+        }
+
+        sidebar.classList.toggle('collapsed');
+        scMain.classList.toggle('expanded');
     });
 
-    // Auto-cerrar alerta de éxito con fade suave — 3 segundos
+    document.querySelectorAll('.sc-nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            if (!isMobileLayout()) return;
+            sidebar.classList.remove('mobile-open');
+            document.body.classList.remove('sc-sidebar-open');
+        });
+    });
+
+    window.addEventListener('resize', () => {
+        if (!isMobileLayout()) {
+            sidebar.classList.remove('mobile-open');
+            document.body.classList.remove('sc-sidebar-open');
+        }
+    });
+
+    // Auto-cerrar alerta de éxito con fade suave - 3 segundos
     const alertaExito = document.getElementById('alertaExito');
     if (alertaExito) {
         setTimeout(() => {
@@ -251,3 +277,4 @@
 @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+

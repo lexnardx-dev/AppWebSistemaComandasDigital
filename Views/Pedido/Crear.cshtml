@@ -4,7 +4,7 @@
     var mesas      = ViewBag.Mesas      as IEnumerable<AppWebSistemaComandasDigital.Dtos.MesaDTO>  ?? [];
     var platos     = ViewBag.Platos     as IEnumerable<AppWebSistemaComandasDigital.Dtos.PlatoDTO> ?? [];
     var mesaIdFijo = ViewBag.MesaIdFijo as int?;
-    var categorias = platos.Select(p => p.CategoriaNombre).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().OrderBy(c => c).ToList();
+    var categorias = platos.Select(p => p.CategoriaNombre).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().ToList();
 }
 
 <div class="page-heading">
@@ -19,10 +19,10 @@
     </div>
 </div>
 
-<div class="row g-4">
-    <div class="col-lg-4">
-        <div class="order-summary-sticky">
-            <div class="card p-3 mb-3">
+<div class="order-create-grid">
+    <div class="order-main-panel">
+        <div class="order-setup-grid mb-3">
+            <div class="card p-3">
                 <h6 class="fw-bold mb-3"><i class="bi bi-table me-2 text-primary"></i>Mesa</h6>
                 <select id="selectMesa" class="form-select form-select-lg">
                     <option value="">Seleccionar mesa</option>
@@ -40,33 +40,15 @@
                 </select>
             </div>
 
-            <div class="card p-3 mb-3">
+            <div class="card p-3">
                 <h6 class="fw-bold mb-2">
                     <i class="bi bi-chat-left-text me-2 text-secondary"></i>Observaciones
                 </h6>
                 <textarea id="observaciones" class="form-control" rows="3"
                           placeholder="Ej: sin picante, sin cebolla..."></textarea>
             </div>
-
-            <div class="card p-3 border-success">
-                <h6 class="fw-bold mb-3"><i class="bi bi-receipt me-2 text-success"></i>Resumen</h6>
-                <div id="resumenItems" class="mb-3 small text-muted">
-                    <em>Sin platos agregados</em>
-                </div>
-                <hr class="my-2" />
-                <div class="d-flex justify-content-between fw-bold fs-5">
-                    <span>Total:</span>
-                    <span class="text-success">S/ <span id="totalPedido">0.00</span></span>
-                </div>
-                <button id="btnCrearPedido" class="btn btn-success w-100 mt-3 btn-lg" disabled>
-                    <i class="bi bi-send me-2"></i>Enviar a cocina
-                </button>
-                <div id="msgError" class="small text-danger mt-2 d-none"></div>
-            </div>
         </div>
-    </div>
 
-    <div class="col-lg-8">
         <div class="card p-3">
             <div class="d-flex justify-content-between align-items-center gap-3 mb-3 flex-wrap">
                 <h6 class="fw-bold mb-0">
@@ -87,7 +69,7 @@
             <div class="row g-2" id="gridPlatos">
                 @foreach (var p in platos)
                 {
-                    <div class="col-6 col-md-4 plato-item" data-nombre="@p.Nombre.ToLower()" data-categoria="@p.CategoriaNombre.ToLower()">
+                    <div class="col-6 col-md-4 col-xl-3 plato-item" data-nombre="@p.Nombre.ToLower()" data-categoria="@((p.CategoriaNombre ?? "").ToLower())">
                         <div class="card h-100 border plato-card overflow-hidden"
                              onclick="agregarPlato(@p.Id, '@Html.Raw(p.Nombre.Replace("'", "\\'"))', @p.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture))">
                             @if (!string.IsNullOrWhiteSpace(p.ImagenUrl))
@@ -125,8 +107,25 @@
             </div>
         </div>
     </div>
-</div>
 
+    <aside class="order-side-panel">
+        <div class="card p-3 border-success">
+            <h6 class="fw-bold mb-3"><i class="bi bi-receipt me-2 text-success"></i>Resumen</h6>
+            <div id="resumenItems" class="mb-3 small text-muted">
+                <em>Sin platos agregados</em>
+            </div>
+            <hr class="my-2" />
+            <div class="d-flex justify-content-between fw-bold fs-5">
+                <span>Total:</span>
+                <span class="text-success">S/ <span id="totalPedido">0.00</span></span>
+            </div>
+            <button id="btnCrearPedido" class="btn btn-success w-100 mt-3 btn-lg" disabled>
+                <i class="bi bi-send me-2"></i>Enviar a cocina
+            </button>
+            <div id="msgError" class="small text-danger mt-2 d-none"></div>
+        </div>
+    </aside>
+</div>
 @section Scripts {
 <script>
     let items = [];

@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewData["Title"] = "Cocina";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var pendientes = ViewBag.Pendientes as IEnumerable<AppWebSistemaComandasDigital.Dtos.PedidoDTO> ?? [];
@@ -10,7 +10,7 @@
         <h3 class="fw-bold mb-0"><i class="bi bi-fire text-danger me-2"></i>Monitor de Cocina</h3>
         <p class="page-subtitle">Pedidos en tiempo real con control de avance por estado</p>
     </div>
-    <span class="badge bg-danger px-3 py-2 fs-6">
+    <span class="badge live-badge px-3 py-2 fs-6">
         <i class="bi bi-circle-fill me-1" style="font-size:.5rem"></i>En vivo
     </span>
 </div>

@@ -7,7 +7,7 @@ namespace AppWebSistemaComandasDigital.Repositories
     public class MesaRepository(ApplicationDbContext context) : IMesaRepository
     {
         public async Task<IEnumerable<Mesa>> GetAllAsync() =>
-            await context.Mesas.AsNoTracking().ToListAsync();
+            await context.Mesas.AsNoTracking().OrderBy(m => m.Id).ToListAsync();
 
         public async Task<Mesa?> GetByIdAsync(int id) =>
             await context.Mesas.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
@@ -16,7 +16,7 @@ namespace AppWebSistemaComandasDigital.Repositories
             await context.Mesas.AsNoTracking().FirstOrDefaultAsync(m => m.Numero == numero);
 
         public async Task<IEnumerable<Mesa>> GetByEstadoAsync(EstadoMesa estado) =>
-            await context.Mesas.AsNoTracking().Where(m => m.Estado == estado).ToListAsync();
+            await context.Mesas.AsNoTracking().Where(m => m.Estado == estado).OrderBy(m => m.Id).ToListAsync();
 
         public async Task<Mesa> CreateAsync(Mesa mesa)
         {

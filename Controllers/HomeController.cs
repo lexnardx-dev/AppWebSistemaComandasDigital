@@ -30,6 +30,12 @@ namespace AppWebSistemaComandasDigital.Controllers
                 .Where(p => p.Estado == EstadoPedido.Entregado.ToString())
                 .Sum(p => p.Total);
             ViewBag.TotalPlatos       = platos.Count;
+            ViewBag.PedidosPorHora = pedidos
+                .Where(p => p.FechaCreacion.Date == DateTime.Today)
+                .GroupBy(p => p.FechaCreacion.Hour)
+                .OrderBy(g => g.Key)
+                .Select(g => new { Hora = $"{g.Key:00}:00", Cantidad = g.Count() })
+                .ToList();
 
             // Últimos 5 pedidos activos (no entregados ni cancelados)
             ViewBag.UltimosPedidos = pedidos
@@ -46,3 +52,4 @@ namespace AppWebSistemaComandasDigital.Controllers
             View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 }
+

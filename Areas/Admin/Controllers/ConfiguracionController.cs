@@ -22,7 +22,7 @@ namespace AppWebSistemaComandasDigital.Areas.Admin.Controllers
                 return View(model);
 
             await configuracionService.GuardarAsync(model);
-            TempData["Exito"] = "Configuracion del restaurante actualizada.";
+            TempData["Exito"] = "Configuración del restaurante actualizada.";
             return RedirectToAction(nameof(Index));
         }
     }
