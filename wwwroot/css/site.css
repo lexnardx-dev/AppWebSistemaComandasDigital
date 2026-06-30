@@ -1237,3 +1237,26 @@ tr.data-filter-hidden { display: none !important; }
         white-space: normal;
     }
 }
+
+.top-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    padding-top: 14px;
+    margin-top: 10px;
+    border-top: 1px solid #edf2f7;
+}
+
+    .top-pagination button {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        padding: 0;
+    }
+
+#topPageIndicator {
+    min-width: 95px;
+    text-align: center;
+    color: #64748b;
+}
