@@ -16,6 +16,17 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
+Console.WriteLine("================================");
+Console.WriteLine(connectionString);
+
+var builderNpgsql = new Npgsql.NpgsqlConnectionStringBuilder(connectionString);
+
+Console.WriteLine(builderNpgsql.Host);
+Console.WriteLine(builderNpgsql.Database);
+Console.WriteLine(builderNpgsql.Username);
+
+Console.WriteLine("================================");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString, npgsql =>
     {

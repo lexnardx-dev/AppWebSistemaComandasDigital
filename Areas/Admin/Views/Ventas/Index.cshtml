@@ -1,4 +1,4 @@
-﻿@model AppWebSistemaComandasDigital.Dtos.VentasDashboardDTO
+@model AppWebSistemaComandasDigital.Dtos.VentasDashboardDTO
 @using System.Text.Json
 @{
     ViewData["Title"] = "Ventas";
@@ -12,9 +12,8 @@
     var filtroSemanaActivo = filtroDesde == inicioSemana && filtroHasta == hoy;
     var filtroMesActivo = filtroDesde == inicioMes && filtroHasta == hoy;
 
-    var topLabels = Model.TopPlatos.Select(p => p.Nombre).ToList();
-    var topCantidades = Model.TopPlatos.Select(p => p.Cantidad).ToList();
-    var topTotales = Model.TopPlatos.Select(p => p.Total).ToList();
+    var topMaxCantidad = Model.TopPlatos.Any() ? Math.Max(1, Model.TopPlatos.Max(p => p.Cantidad)) : 1;
+    var topTotalUnidades = Math.Max(1, Model.TopPlatos.Sum(p => p.Cantidad));
     var ventasPorDia = Model.UltimasVentas
         .GroupBy(v => v.FechaCreacion.Date)
         .OrderBy(g => g.Key)
@@ -104,8 +103,8 @@
     <div class="col-xl-7">
         <div class="chart-panel h-100">
             <div class="analytics-card-title">
-                <span><i class="bi bi-graph-up text-success me-2"></i>Evolucion de ventas</span>
-                <small class="text-muted">Segun ventas cerradas visibles</small>
+                <span><i class="bi bi-graph-up text-success me-2"></i>Evolución de ventas</span>
+                <small class="text-muted">Según ventas cerradas visibles</small>
             </div>
             <div class="chart-box">
                 <canvas id="ventasLineChart"></canvas>
@@ -113,14 +112,57 @@
         </div>
     </div>
     <div class="col-xl-5">
-        <div class="chart-panel h-100">
+        <div class="chart-panel top-products-panel h-100">
             <div class="analytics-card-title">
-                <span><i class="bi bi-bar-chart text-primary me-2"></i>Platos mas vendidos</span>
+                <span><i class="bi bi-bar-chart-fill text-primary me-2"></i>Platos más vendidos</span>
                 <small class="text-muted">Unidades</small>
             </div>
-            <div class="chart-box-sm">
-                <canvas id="topPlatosChart"></canvas>
-            </div>
+
+            @if (Model.TopPlatos.Any())
+            {
+                var lider = Model.TopPlatos.First();
+                var liderPct = Math.Round((double)lider.Cantidad * 100 / topTotalUnidades);
+                <div class="top-product-hero">
+                    <div class="top-product-rank">#1</div>
+                    <div class="top-product-main">
+                        <span>Plato líder</span>
+                        <strong>@lider.Nombre</strong>
+                        <small>@lider.Cantidad unidades · @liderPct% del top vendido</small>
+                    </div>
+                    <div class="top-product-total">S/ @lider.Total.ToString("F2")</div>
+                </div>
+
+                <div class="top-product-list">
+                    @foreach (var item in Model.TopPlatos.Select((plato, index) => new { plato, index }))
+                    {
+                        var pct = Math.Round((double)item.plato.Cantidad * 100 / topMaxCantidad);
+                        var share = Math.Round((double)item.plato.Cantidad * 100 / topTotalUnidades);
+                        <div class="top-product-row">
+                            <div class="top-product-index">@(item.index + 1)</div>
+                            <div class="top-product-info">
+                                <div class="top-product-line">
+                                    <span>@item.plato.Nombre</span>
+                                    <strong>@item.plato.Cantidad u.</strong>
+                                </div>
+                                <div class="top-product-meter" aria-label="@item.plato.Nombre: @item.plato.Cantidad unidades">
+                                    <div style="width:@pct%"></div>
+                                </div>
+                                <div class="top-product-meta">
+                                    <span>@share% del ranking</span>
+                                    <span>S/ @item.plato.Total.ToString("F2")</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state compact-empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <span>No hay ventas entregadas en este periodo.</span>
+                </div>
+            }
         </div>
     </div>
 </div>
@@ -164,7 +206,7 @@
         <div class="card p-0 h-100">
             <div class="card-header bg-transparent px-3 py-3">
                 <i class="bi bi-clock-history text-secondary me-2"></i>
-                <span class="fw-bold">Ultimas ventas</span>
+                <span class="fw-bold">Últimas ventas</span>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover table-modern align-middle mb-0">
@@ -206,8 +248,6 @@
 <script>
     const ventasLabels = @Html.Raw(JsonSerializer.Serialize(ventasLabels));
     const ventasTotales = @Html.Raw(JsonSerializer.Serialize(ventasTotales));
-    const topLabels = @Html.Raw(JsonSerializer.Serialize(topLabels));
-    const topCantidades = @Html.Raw(JsonSerializer.Serialize(topCantidades));
 
     const commonOptions = {
         responsive: true,
@@ -235,20 +275,6 @@
             }]
         },
         options: commonOptions
-    });
-
-    new Chart(document.getElementById('topPlatosChart'), {
-        type: 'bar',
-        data: {
-            labels: topLabels.length ? topLabels : ['Sin datos'],
-            datasets: [{
-                data: topCantidades.length ? topCantidades : [0],
-                backgroundColor: ['#2563eb', '#059669', '#d97706', '#0284c7', '#7c3aed', '#dc2626', '#475569', '#0f766e'],
-                borderRadius: 8,
-                maxBarThickness: 34
-            }]
-        },
-        options: { ...commonOptions, indexAxis: 'y' }
     });
 </script>
 }
