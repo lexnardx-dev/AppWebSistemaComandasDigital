@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = "Ventas";
 
+    const int TopProductsPerPage = 2;
+
     var hoy = DateTime.Today;
     var inicioSemana = hoy.AddDays(-(int)hoy.DayOfWeek + (hoy.DayOfWeek == DayOfWeek.Sunday ? -6 : 1));
     var inicioMes = new DateTime(hoy.Year, hoy.Month, 1);
@@ -135,13 +137,15 @@
                     <div class="top-product-total">S/ @lider.Total.ToString("F2")</div>
                 </div>
 
-                @* <div class="top-product-list">
-                    @foreach (var item in Model.TopPlatos.Select((plato, index) => new { plato, index }))
+                <div class="top-product-list">
+                    @foreach (var item in topPlatosRestantes.Select((plato, index) => new { plato, index }))
                     {
                         var pct = Math.Round((double)item.plato.Cantidad * 100 / topMaxCantidad);
                         var share = Math.Round((double)item.plato.Cantidad * 100 / topTotalUnidades);
-                        <div class="top-product-row">
-                            <div class="top-product-index">@(item.index + 1)</div>
+                        <div class="top-product-row product-page-item">
+                            <div class="top-product-index">
+                                @(item.index + 2)
+                            </div>
                             <div class="top-product-info">
                                 <div class="top-product-line">
                                     <span>@item.plato.Nombre</span>
@@ -156,66 +160,21 @@
                                 </div>
                             </div>
                         </div>
-                    }
-                </div> *@
-
-                <div id="topProductsContainer" class="top-product-list">
-
-    @foreach (var item in topPlatosRestantes.Select((plato, index) => new { plato, index }))
-    {
-        var pct = Math.Round((double)item.plato.Cantidad * 100 / topMaxCantidad);
-        var share = Math.Round((double)item.plato.Cantidad * 100 / topTotalUnidades);
-
-        <div class="top-product-row product-page-item">
-
-            <div class="top-product-index">
-                @(item.index + 2)
-            </div>
-
-            <div class="top-product-info">
-
-                <div class="top-product-line">
-                    <span>@item.plato.Nombre</span>
-                    <strong>@item.plato.Cantidad u.</strong>
+                     }
                 </div>
-
-                <div class="top-product-meter"
-                     aria-label="@item.plato.Nombre: @item.plato.Cantidad unidades">
-                    <div style="width:@pct%"></div>
-                </div>
-
-                <div class="top-product-meta">
-                    <span>@share% del ranking</span>
-                    <span>S/ @item.plato.Total.ToString("F2")</span>
-                </div>
-
-            </div>
-
-        </div>
-    }
-
-</div>
-
-@if (topPlatosRestantes.Count > 3)
-{
-    <div class="top-pagination mt-3">
-
-        <button id="btnPrevTop"
-                class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-chevron-left"></i>
-        </button>
-
-        <span id="topPageIndicator"
-              class="mx-3 fw-semibold">
-        </span>
-
-        <button id="btnNextTop"
-                class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-chevron-right"></i>
-        </button>
-
-    </div>
-}
+                
+                @if (topPlatosRestantes.Count > TopProductsPerPage)
+                {
+                    <div class="top-pagination mt-3">
+                        <button id="btnPrevTop" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <span id="topPageIndicator" class="mx-3 fw-semibold"></span>
+                        <button id="btnNextTop" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+                 }
             }
             else
             {
@@ -337,78 +296,42 @@
         },
         options: commonOptions
     });
-    const ITEMS_PER_PAGE = 3;
 
-const productRows =
-    document.querySelectorAll(".product-page-item");
+    const TOP_PRODUCTS_PER_PAGE = @TopProductsPerPage;
+    const productRows = document.querySelectorAll(".top-product-list .product-page-item");
 
-if (productRows.length) {
+    if (productRows.length) {
+        let currentPage = 1;
+        const totalPages = Math.max(1, Math.ceil(productRows.length / TOP_PRODUCTS_PER_PAGE));
+        const indicator = document.getElementById("topPageIndicator");
+        const prev = document.getElementById("btnPrevTop");
+        const next = document.getElementById("btnNextTop");
 
-    let currentPage = 1;
+        function renderPage() {
+            productRows.forEach((item, index) => {
+                const start = (currentPage - 1) * TOP_PRODUCTS_PER_PAGE;
+                const end = start + TOP_PRODUCTS_PER_PAGE;
+                item.style.display = (index >= start && index < end) ? "" : "none";
+            });
+            if (indicator) indicator.textContent = `Página ${currentPage} de ${totalPages}`;
+            if (prev) prev.disabled = currentPage === 1;
+            if (next) next.disabled = currentPage === totalPages;
+        }
 
-    const totalPages =
-        Math.ceil(productRows.length / ITEMS_PER_PAGE);
-
-    const indicator =
-        document.getElementById("topPageIndicator");
-
-    const prev =
-        document.getElementById("btnPrevTop");
-
-    const next =
-        document.getElementById("btnNextTop");
-
-    function renderPage() {
-
-        productRows.forEach((item, index) => {
-
-            const start = (currentPage - 1) * ITEMS_PER_PAGE;
-            const end = start + ITEMS_PER_PAGE;
-
-            item.style.display =
-                index >= start && index < end
-                    ? ""
-                    : "none";
-
+        prev?.addEventListener("click", () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderPage();
+            }
         });
 
-        if (indicator)
-            indicator.textContent =
-                `Página ${currentPage} de ${totalPages}`;
-
-        if (prev)
-            prev.disabled = currentPage === 1;
-
-        if (next)
-            next.disabled = currentPage === totalPages;
+        next?.addEventListener("click", () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderPage();
+            }
+        });
+        renderPage();
     }
-
-    prev?.addEventListener("click", () => {
-
-        if (currentPage > 1) {
-
-            currentPage--;
-
-            renderPage();
-
-        }
-
-    });
-
-    next?.addEventListener("click", () => {
-
-        if (currentPage < totalPages) {
-
-            currentPage++;
-
-            renderPage();
-
-        }
-
-    });
-
-    renderPage();
-
-}
 </script>
 }
