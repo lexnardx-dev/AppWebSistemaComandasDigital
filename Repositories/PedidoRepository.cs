@@ -10,7 +10,9 @@ namespace AppWebSistemaComandasDigital.Repositories
             await context.Pedidos.AsNoTracking()
                 .Include(p => p.Mesa)
                 .Include(p => p.Usuario)
-                .Include(p => p.Detalles).ThenInclude(d => d.Plato)
+                .Include(p => p.Detalles)
+                    .ThenInclude(d => d.Plato)
+                    .ThenInclude(pl => pl.Categoria)
                 .OrderByDescending(p => p.FechaCreacion)
                 .ToListAsync();
 
@@ -18,13 +20,17 @@ namespace AppWebSistemaComandasDigital.Repositories
             await context.Pedidos.AsNoTracking()
                 .Include(p => p.Mesa)
                 .Include(p => p.Usuario)
-                .Include(p => p.Detalles).ThenInclude(d => d.Plato)
+                .Include(p => p.Detalles)
+                    .ThenInclude(d => d.Plato)
+                    .ThenInclude(pl => pl.Categoria)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
         public async Task<IEnumerable<Pedido>> GetByMesaAsync(int mesaId) =>
             await context.Pedidos.AsNoTracking()
                 .Where(p => p.MesaId == mesaId)
-                .Include(p => p.Detalles).ThenInclude(d => d.Plato)
+                .Include(p => p.Detalles)
+                    .ThenInclude(d => d.Plato)
+                    .ThenInclude(pl => pl.Categoria)
                 .OrderByDescending(p => p.FechaCreacion)
                 .ToListAsync();
 
@@ -32,7 +38,9 @@ namespace AppWebSistemaComandasDigital.Repositories
             await context.Pedidos.AsNoTracking()
                 .Where(p => p.Estado == estado)
                 .Include(p => p.Mesa)
-                .Include(p => p.Detalles).ThenInclude(d => d.Plato)
+                .Include(p => p.Detalles)
+                    .ThenInclude(d => d.Plato)
+                    .ThenInclude(pl => pl.Categoria)
                 .OrderByDescending(p => p.FechaCreacion)
                 .ToListAsync();
 
@@ -40,7 +48,9 @@ namespace AppWebSistemaComandasDigital.Repositories
             await context.Pedidos.AsNoTracking()
                 .Where(p => p.UsuarioId == usuarioId)
                 .Include(p => p.Mesa)
-                .Include(p => p.Detalles).ThenInclude(d => d.Plato)
+                .Include(p => p.Detalles)
+                    .ThenInclude(d => d.Plato)
+                    .ThenInclude(pl => pl.Categoria)
                 .OrderByDescending(p => p.FechaCreacion)
                 .ToListAsync();
 

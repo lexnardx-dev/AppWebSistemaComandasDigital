@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AppWebSistemaComandasDigital.Dtos
 {
-    // ── Entrada ──────────────────────────────────────────────────────
     public class DetallePedidoCreateDTO
     {
         [Required]
@@ -15,12 +14,13 @@ namespace AppWebSistemaComandasDigital.Dtos
         public string? Notas { get; set; }
     }
 
-    // ── Salida ───────────────────────────────────────────────────────
     public class DetallePedidoDTO
     {
         public int Id { get; set; }
         public int PlatoId { get; set; }
         public string PlatoNombre { get; set; } = string.Empty;
+        public int CategoriaId { get; set; }
+        public string CategoriaNombre { get; set; } = string.Empty;
         public int Cantidad { get; set; }
         public decimal PrecioUnitario { get; set; }
         public decimal Subtotal { get; set; }

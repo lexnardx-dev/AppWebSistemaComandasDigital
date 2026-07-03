@@ -1,9 +1,10 @@
 @model AppWebSistemaComandasDigital.Dtos.VentasDashboardDTO
+@using System.Globalization
 @using System.Text.Json
 @{
     ViewData["Title"] = "Ventas";
 
-    const int TopProductsPerPage = 2;
+    const int RankingPerPage = 5;
 
     var hoy = DateTime.Today;
     var inicioSemana = hoy.AddDays(-(int)hoy.DayOfWeek + (hoy.DayOfWeek == DayOfWeek.Sunday ? -6 : 1));
@@ -14,18 +15,23 @@
     var filtroSemanaActivo = filtroDesde == inicioSemana && filtroHasta == hoy;
     var filtroMesActivo = filtroDesde == inicioMes && filtroHasta == hoy;
 
-    var topMaxCantidad = Model.TopPlatos.Any() ? Math.Max(1, Model.TopPlatos.Max(p => p.Cantidad)) : 1;
-    var topTotalUnidades = Math.Max(1, Model.TopPlatos.Sum(p => p.Cantidad));
+    var evolucionLabels = Model.EvolucionVentas.Select(v => v.Etiqueta).ToList();
+    var evolucionTotales = Model.EvolucionVentas.Select(v => v.Total).ToList();
+    var evolucionPedidos = Model.EvolucionVentas.Select(v => v.Pedidos).ToList();
 
-    var topPlatosRestantes = Model.TopPlatos.Skip(1).ToList();
+    var categoriaLabels = Model.VentasPorCategoria.Select(c => c.Nombre).ToList();
+    var categoriaTotales = Model.VentasPorCategoria.Select(c => c.Total).ToList();
+    var mozoLabels = Model.VentasPorMozo.Select(m => m.Nombre).ToList();
+    var mozoTotales = Model.VentasPorMozo.Select(m => m.Total).ToList();
+    var horaLabels = Model.VentasPorHora.Select(h => h.Etiqueta).ToList();
+    var horaTotales = Model.VentasPorHora.Select(h => h.Total).ToList();
+    var diaLabels = Model.VentasPorDiaSemana.Select(d => d.Dia).ToList();
+    var diaTotales = Model.VentasPorDiaSemana.Select(d => d.Total).ToList();
 
-    var ventasPorDia = Model.UltimasVentas
-        .GroupBy(v => v.FechaCreacion.Date)
-        .OrderBy(g => g.Key)
-        .Select(g => new { Fecha = g.Key.ToString("dd/MM"), Total = g.Sum(x => x.Total) })
-        .ToList();
-    var ventasLabels = ventasPorDia.Select(v => v.Fecha).ToList();
-    var ventasTotales = ventasPorDia.Select(v => v.Total).ToList();
+    var totalRanking = Model.TopPlatos.Sum(p => p.Total);
+    var totalRankingSeguro = totalRanking <= 0 ? 1 : totalRanking;
+    var comparativoClass = Model.Comparativo.VariacionPorcentual > 0 ? "positive" : Model.Comparativo.VariacionPorcentual < 0 ? "negative" : "neutral";
+    var comparativoIcon = Model.Comparativo.VariacionPorcentual > 0 ? "bi-arrow-up-right" : Model.Comparativo.VariacionPorcentual < 0 ? "bi-arrow-down-right" : "bi-dash-lg";
 }
 
 <div class="page-heading">
@@ -104,234 +110,367 @@
     </div>
 </div>
 
-<div class="row g-4 mb-4">
-    <div class="col-xl-7">
-        <div class="chart-panel h-100">
-            <div class="analytics-card-title">
-                <span><i class="bi bi-graph-up text-success me-2"></i>Evolución de ventas</span>
-                <small class="text-muted">Según ventas cerradas visibles</small>
+<div class="sales-dashboard-grid">
+    <section class="chart-panel executive-panel executive-panel-wide">
+        <div class="analytics-card-title">
+            <span><i class="bi bi-graph-up text-success me-2"></i>Evoluci&oacute;n de ventas</span>
+            <small class="text-muted">Ventas por d&iacute;a vs. pedidos entregados</small>
+        </div>
+        <div class="chart-box chart-box-lg">
+            <canvas id="ventasComboChart"></canvas>
+        </div>
+    </section>
+
+    <section class="chart-panel executive-panel comparison-panel @comparativoClass">
+        <div class="analytics-card-title">
+            <span><i class="bi bi-arrow-left-right text-primary me-2"></i>Comparativo</span>
+            <small class="text-muted">@Model.Comparativo.PeriodoAnterior</small>
+        </div>
+        <div class="comparison-value">
+            <i class="bi @comparativoIcon"></i>
+            <strong>@Math.Abs(Model.Comparativo.VariacionPorcentual).ToString("F1")%</strong>
+            <span>@Model.Comparativo.Tendencia</span>
+        </div>
+        <div class="comparison-grid">
+            <div>
+                <span>Periodo actual</span>
+                <strong>S/ @Model.Comparativo.TotalActual.ToString("F2")</strong>
+                <small>@Model.Comparativo.PedidosActuales pedidos</small>
             </div>
-            <div class="chart-box">
-                <canvas id="ventasLineChart"></canvas>
+            <div>
+                <span>Periodo anterior</span>
+                <strong>S/ @Model.Comparativo.TotalAnterior.ToString("F2")</strong>
+                <small>@Model.Comparativo.PedidosAnteriores pedidos</small>
             </div>
         </div>
-    </div>
-    <div class="col-xl-5">
-        <div class="chart-panel top-products-panel h-100">
-            <div class="analytics-card-title">
-                <span><i class="bi bi-bar-chart-fill text-primary me-2"></i>Platos más vendidos</span>
-                <small class="text-muted">Unidades</small>
-            </div>
+    </section>
 
-            @if (Model.TopPlatos.Any())
+    <section class="chart-panel executive-panel">
+        <div class="analytics-card-title">
+            <span><i class="bi bi-pie-chart text-primary me-2"></i>Ventas por categor&iacute;a</span>
+            <small class="text-muted">Participaci&oacute;n comercial</small>
+        </div>
+        <div class="chart-box chart-box-md">
+            <canvas id="categoriaDonaChart"></canvas>
+        </div>
+        <div class="category-insight-list">
+            @foreach (var categoria in Model.VentasPorCategoria.Take(4))
             {
-                var lider = Model.TopPlatos.First();
-                var liderPct = Math.Round((double)lider.Cantidad * 100 / topTotalUnidades);
-                <div class="top-product-hero">
-                    <div class="top-product-rank">#1</div>
-                    <div class="top-product-main">
-                        <span>Plato líder</span>
-                        <strong>@lider.Nombre</strong>
-                        <small>@lider.Cantidad unidades · @liderPct% del top vendido</small>
-                    </div>
-                    <div class="top-product-total">S/ @lider.Total.ToString("F2")</div>
+                var porcentaje = categoria.Total * 100 / Math.Max(1, Model.TotalVendido);
+                <div class="category-insight-item">
+                    <span>@categoria.Nombre</span>
+                    <strong>S/ @categoria.Total.ToString("F2")</strong>
+                    <small>@porcentaje.ToString("F1")% &middot; @categoria.Cantidad unidades</small>
                 </div>
-
-                <div class="top-product-list">
-                    @foreach (var item in topPlatosRestantes.Select((plato, index) => new { plato, index }))
-                    {
-                        var pct = Math.Round((double)item.plato.Cantidad * 100 / topMaxCantidad);
-                        var share = Math.Round((double)item.plato.Cantidad * 100 / topTotalUnidades);
-                        <div class="top-product-row product-page-item">
-                            <div class="top-product-index">
-                                @(item.index + 2)
-                            </div>
-                            <div class="top-product-info">
-                                <div class="top-product-line">
-                                    <span>@item.plato.Nombre</span>
-                                    <strong>@item.plato.Cantidad u.</strong>
-                                </div>
-                                <div class="top-product-meter" aria-label="@item.plato.Nombre: @item.plato.Cantidad unidades">
-                                    <div style="width:@pct%"></div>
-                                </div>
-                                <div class="top-product-meta">
-                                    <span>@share% del ranking</span>
-                                    <span>S/ @item.plato.Total.ToString("F2")</span>
-                                </div>
-                            </div>
-                        </div>
-                     }
-                </div>
-                
-                @if (topPlatosRestantes.Count > TopProductsPerPage)
-                {
-                    <div class="top-pagination mt-3">
-                        <button id="btnPrevTop" class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-chevron-left"></i>
-                        </button>
-                        <span id="topPageIndicator" class="mx-3 fw-semibold"></span>
-                        <button id="btnNextTop" class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-chevron-right"></i>
-                        </button>
-                    </div>
-                 }
             }
-            else
+            @if (!Model.VentasPorCategoria.Any())
             {
                 <div class="empty-state compact-empty-state">
                     <i class="bi bi-inbox"></i>
-                    <span>No hay ventas entregadas en este periodo.</span>
+                    <span>No hay ventas por categoria en este periodo.</span>
                 </div>
             }
         </div>
-    </div>
-</div>
+    </section>
 
-<div class="row g-4">
-    <div class="col-lg-5">
-        <div class="card p-0 h-100">
-            <div class="card-header bg-transparent px-3 py-3">
-                <i class="bi bi-trophy text-warning me-2"></i>
-                <span class="fw-bold">Ranking comercial</span>
-            </div>
-            <div class="list-group list-group-flush">
-                @foreach (var plato in Model.TopPlatos)
+    <section class="chart-panel executive-panel">
+        <div class="analytics-card-title">
+            <span><i class="bi bi-person-lines-fill text-info me-2"></i>Ventas por mozo</span>
+            <small class="text-muted">Productividad comercial</small>
+        </div>
+        <div class="chart-box chart-box-md">
+            <canvas id="mozoChart"></canvas>
+        </div>
+    </section>
+
+    <section class="chart-panel executive-panel executive-panel-wide ranking-panel">
+        <div class="analytics-card-title">
+            <span><i class="bi bi-trophy text-warning me-2"></i>Ranking comercial</span>
+            <small class="text-muted">Productos por facturaci&oacute;n</small>
+        </div>
+        @if (Model.TopPlatos.Any())
+        {
+            <div class="ranking-list">
+                @foreach (var item in Model.TopPlatos.Select((plato, index) => new { plato, index }))
                 {
-                    var maxCantidad = Model.TopPlatos.Any() ? Math.Max(1, Model.TopPlatos.Max(p => p.Cantidad)) : 1;
-                    var pct = Math.Round((double)plato.Cantidad * 100 / maxCantidad);
-                    <div class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <div class="fw-semibold">@plato.Nombre</div>
-                                <small class="text-muted">@plato.Cantidad unidades</small>
+                    var width = (item.plato.Total * 100 / totalRankingSeguro).ToString("0.##", CultureInfo.InvariantCulture);
+                    var participacion = item.plato.Total * 100 / totalRankingSeguro;
+                    <div class="ranking-row ranking-page-item">
+                        <div class="ranking-index">#@(item.index + 1)</div>
+                        <div class="ranking-content">
+                            <div class="ranking-line">
+                                <div>
+                                    <strong>@item.plato.Nombre</strong>
+                                    <span>@item.plato.Cantidad unidades &middot; @participacion.ToString("F1")% del total vendido</span>
+                                </div>
+                                <strong class="ranking-total">S/ @item.plato.Total.ToString("F2")</strong>
                             </div>
-                            <span class="fw-bold text-success">S/ @plato.Total.ToString("F2")</span>
-                        </div>
-                        <div class="ops-progress" style="height:8px">
-                            <div class="ops-segment ops-cooking" style="width:@pct%"></div>
+                            <div class="ranking-meter" aria-label="@item.plato.Nombre: @participacion.ToString("F1")% del total vendido">
+                                <div style="width:@width%"></div>
+                            </div>
                         </div>
                     </div>
                 }
-                @if (!Model.TopPlatos.Any())
-                {
-                    <div class="empty-state">
-                        <i class="bi bi-inbox"></i>
-                        <span>No hay ventas entregadas en este periodo.</span>
-                    </div>
-                }
             </div>
+
+            @if (Model.TopPlatos.Count > RankingPerPage)
+            {
+                <div class="top-pagination mt-3">
+                    <button type="button" id="btnPrevRanking" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <span id="rankingPageIndicator" class="mx-3 fw-semibold"></span>
+                    <button type="button" id="btnNextRanking" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state compact-empty-state">
+                <i class="bi bi-inbox"></i>
+                <span>No hay productos vendidos en este periodo.</span>
+            </div>
+        }
+    </section>
+
+    <section class="chart-panel executive-panel">
+        <div class="analytics-card-title">
+            <span><i class="bi bi-clock text-secondary me-2"></i>Ventas por hora</span>
+            <small class="text-muted">Horas de mayor movimiento</small>
         </div>
-    </div>
-    <div class="col-lg-7">
-        <div class="card p-0 h-100">
-            <div class="card-header bg-transparent px-3 py-3">
-                <i class="bi bi-clock-history text-secondary me-2"></i>
-                <span class="fw-bold">Últimas ventas</span>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-hover table-modern align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Mesa</th>
-                            <th>Mozo</th>
-                            <th>Fecha</th>
-                            <th class="text-end">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var venta in Model.UltimasVentas)
-                        {
-                            <tr>
-                                <td class="fw-bold text-muted">#@venta.Id</td>
-                                <td>Mesa @venta.MesaNumero</td>
-                                <td>@venta.UsuarioNombre</td>
-                                <td class="text-muted small">@venta.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</td>
-                                <td class="text-end fw-bold text-success">S/ @venta.Total.ToString("F2")</td>
-                            </tr>
-                        }
-                        @if (!Model.UltimasVentas.Any())
-                        {
-                            <tr>
-                                <td colspan="5" class="text-center text-muted py-5">Sin ventas cerradas.</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+        <div class="chart-box chart-box-sm">
+            <canvas id="horaChart"></canvas>
         </div>
-    </div>
+    </section>
+
+    <section class="chart-panel executive-panel">
+        <div class="analytics-card-title">
+            <span><i class="bi bi-calendar-week text-warning me-2"></i>Ventas por d&iacute;a</span>
+            <small class="text-muted">Movimiento semanal</small>
+        </div>
+        <div class="chart-box chart-box-sm">
+            <canvas id="diaSemanaChart"></canvas>
+        </div>
+    </section>
 </div>
 
 @section Scripts {
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script>
-    const ventasLabels = @Html.Raw(JsonSerializer.Serialize(ventasLabels));
-    const ventasTotales = @Html.Raw(JsonSerializer.Serialize(ventasTotales));
+    const evolucionLabels = @Html.Raw(JsonSerializer.Serialize(evolucionLabels));
+    const evolucionTotales = @Html.Raw(JsonSerializer.Serialize(evolucionTotales));
+    const evolucionPedidos = @Html.Raw(JsonSerializer.Serialize(evolucionPedidos));
+    const categoriaLabels = @Html.Raw(JsonSerializer.Serialize(categoriaLabels));
+    const categoriaTotales = @Html.Raw(JsonSerializer.Serialize(categoriaTotales));
+    const mozoLabels = @Html.Raw(JsonSerializer.Serialize(mozoLabels));
+    const mozoTotales = @Html.Raw(JsonSerializer.Serialize(mozoTotales));
+    const horaLabels = @Html.Raw(JsonSerializer.Serialize(horaLabels));
+    const horaTotales = @Html.Raw(JsonSerializer.Serialize(horaTotales));
+    const diaLabels = @Html.Raw(JsonSerializer.Serialize(diaLabels));
+    const diaTotales = @Html.Raw(JsonSerializer.Serialize(diaTotales));
 
-    const commonOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-            x: { grid: { display: false }, ticks: { color: '#64748b' } },
-            y: { beginAtZero: true, grid: { color: '#eef2f7' }, ticks: { color: '#64748b' } }
-        }
+    const chartColors = ['#2563eb', '#059669', '#f59e0b', '#0ea5e9', '#ef4444', '#7c3aed', '#14b8a6'];
+    const money = value => `S/ ${Number(value || 0).toFixed(2)}`;
+
+    const baseScales = {
+        x: { grid: { display: false }, ticks: { color: '#64748b' } },
+        y: { beginAtZero: true, grid: { color: '#eef2f7' }, ticks: { color: '#64748b' } }
     };
 
-    new Chart(document.getElementById('ventasLineChart'), {
-        type: 'line',
+    new Chart(document.getElementById('ventasComboChart'), {
         data: {
-            labels: ventasLabels.length ? ventasLabels : ['Sin datos'],
-            datasets: [{
-                data: ventasTotales.length ? ventasTotales : [0],
-                borderColor: '#059669',
-                backgroundColor: 'rgba(5,150,105,.14)',
-                borderWidth: 3,
-                tension: .35,
-                fill: true,
-                pointRadius: 4,
-                pointBackgroundColor: '#059669'
-            }]
+            labels: evolucionLabels.length ? evolucionLabels : ['Sin datos'],
+            datasets: [
+                {
+                    type: 'bar',
+                    label: 'Ventas',
+                    data: evolucionTotales.length ? evolucionTotales : [0],
+                    backgroundColor: 'rgba(5, 150, 105, .18)',
+                    borderColor: '#059669',
+                    borderWidth: 1,
+                    borderRadius: 8,
+                    yAxisID: 'y'
+                },
+                {
+                    type: 'line',
+                    label: 'Pedidos',
+                    data: evolucionPedidos.length ? evolucionPedidos : [0],
+                    borderColor: '#2563eb',
+                    backgroundColor: '#2563eb',
+                    borderWidth: 3,
+                    tension: .35,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    yAxisID: 'y1'
+                }
+            ]
         },
-        options: commonOptions
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12, color: '#334155' } },
+                tooltip: {
+                    callbacks: {
+                        label: context => context.dataset.label === 'Ventas'
+                            ? `Ventas: ${money(context.parsed.y)}`
+                            : `Pedidos: ${context.parsed.y}`
+                    }
+                }
+            },
+            scales: {
+                x: baseScales.x,
+                y: {
+                    ...baseScales.y,
+                    ticks: { color: '#64748b', callback: value => money(value) }
+                },
+                y1: {
+                    beginAtZero: true,
+                    position: 'right',
+                    grid: { drawOnChartArea: false },
+                    ticks: { color: '#64748b', precision: 0 }
+                }
+            }
+        }
     });
 
-    const TOP_PRODUCTS_PER_PAGE = @TopProductsPerPage;
-    const productRows = document.querySelectorAll(".top-product-list .product-page-item");
+    new Chart(document.getElementById('categoriaDonaChart'), {
+        type: 'doughnut',
+        data: {
+            labels: categoriaLabels.length ? categoriaLabels : ['Sin datos'],
+            datasets: [{
+                data: categoriaTotales.length ? categoriaTotales : [1],
+                backgroundColor: categoriaLabels.length ? chartColors : ['#e5e7eb'],
+                borderWidth: 0,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '68%',
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 10, color: '#334155' } },
+                tooltip: { callbacks: { label: context => `${context.label}: ${money(context.raw)}` } }
+            }
+        }
+    });
 
-    if (productRows.length) {
-        let currentPage = 1;
-        const totalPages = Math.max(1, Math.ceil(productRows.length / TOP_PRODUCTS_PER_PAGE));
-        const indicator = document.getElementById("topPageIndicator");
-        const prev = document.getElementById("btnPrevTop");
-        const next = document.getElementById("btnNextTop");
+    new Chart(document.getElementById('mozoChart'), {
+        type: 'bar',
+        data: {
+            labels: mozoLabels.length ? mozoLabels : ['Sin datos'],
+            datasets: [{
+                label: 'Ventas',
+                data: mozoTotales.length ? mozoTotales : [0],
+                backgroundColor: 'rgba(37, 99, 235, .16)',
+                borderColor: '#2563eb',
+                borderWidth: 1,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: context => money(context.raw) } }
+            },
+            scales: {
+                x: { beginAtZero: true, grid: { color: '#eef2f7' }, ticks: { color: '#64748b', callback: value => money(value) } },
+                y: { grid: { display: false }, ticks: { color: '#334155' } }
+            }
+        }
+    });
 
-        function renderPage() {
-            productRows.forEach((item, index) => {
-                const start = (currentPage - 1) * TOP_PRODUCTS_PER_PAGE;
-                const end = start + TOP_PRODUCTS_PER_PAGE;
-                item.style.display = (index >= start && index < end) ? "" : "none";
+    new Chart(document.getElementById('horaChart'), {
+        type: 'bar',
+        data: {
+            labels: horaLabels.length ? horaLabels : ['Sin datos'],
+            datasets: [{
+                label: 'Ventas',
+                data: horaTotales.length ? horaTotales : [0],
+                backgroundColor: 'rgba(14, 165, 233, .18)',
+                borderColor: '#0ea5e9',
+                borderWidth: 1,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: context => money(context.raw) } }
+            },
+            scales: baseScales
+        }
+    });
+
+    new Chart(document.getElementById('diaSemanaChart'), {
+        type: 'bar',
+        data: {
+            labels: diaLabels.length ? diaLabels : ['Sin datos'],
+            datasets: [{
+                label: 'Ventas',
+                data: diaTotales.length ? diaTotales : [0],
+                backgroundColor: 'rgba(245, 158, 11, .22)',
+                borderColor: '#f59e0b',
+                borderWidth: 1,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: context => money(context.raw) } }
+            },
+            scales: baseScales
+        }
+    });
+
+    const RANKING_PER_PAGE = @RankingPerPage;
+    const rankingRows = document.querySelectorAll('.ranking-list .ranking-page-item');
+
+    if (rankingRows.length) {
+        let currentRankingPage = 1;
+        const totalRankingPages = Math.max(1, Math.ceil(rankingRows.length / RANKING_PER_PAGE));
+        const indicator = document.getElementById('rankingPageIndicator');
+        const prev = document.getElementById('btnPrevRanking');
+        const next = document.getElementById('btnNextRanking');
+
+        function renderRankingPage() {
+            rankingRows.forEach((item, index) => {
+                const start = (currentRankingPage - 1) * RANKING_PER_PAGE;
+                const end = start + RANKING_PER_PAGE;
+                item.style.display = index >= start && index < end ? '' : 'none';
             });
-            if (indicator) indicator.textContent = `Página ${currentPage} de ${totalPages}`;
-            if (prev) prev.disabled = currentPage === 1;
-            if (next) next.disabled = currentPage === totalPages;
+            if (indicator) indicator.textContent = `Pagina ${currentRankingPage} de ${totalRankingPages}`;
+            if (prev) prev.disabled = currentRankingPage === 1;
+            if (next) next.disabled = currentRankingPage === totalRankingPages;
         }
 
-        prev?.addEventListener("click", () => {
-            if (currentPage > 1) {
-                currentPage--;
-                renderPage();
+        prev?.addEventListener('click', () => {
+            if (currentRankingPage > 1) {
+                currentRankingPage--;
+                renderRankingPage();
             }
         });
 
-        next?.addEventListener("click", () => {
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderPage();
+        next?.addEventListener('click', () => {
+            if (currentRankingPage < totalRankingPages) {
+                currentRankingPage++;
+                renderRankingPage();
             }
         });
-        renderPage();
+
+        renderRankingPage();
     }
 </script>
 }

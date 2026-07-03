@@ -1260,3 +1260,245 @@ tr.data-filter-hidden { display: none !important; }
     text-align: center;
     color: #64748b;
 }
+/* === Executive sales dashboard === */
+.sales-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 1.25rem;
+}
+
+.executive-panel {
+    grid-column: span 6;
+    min-width: 0;
+}
+
+.executive-panel-wide {
+    grid-column: span 8;
+}
+
+.comparison-panel {
+    grid-column: span 4;
+}
+
+.chart-box-lg { min-height: 360px; }
+.chart-box-md { min-height: 285px; }
+.chart-box-sm { min-height: 245px; }
+
+.comparison-value {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: 1.25rem 0 1rem;
+}
+
+.comparison-value i {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    font-size: 1.35rem;
+    background: #eef2ff;
+    color: #2563eb;
+}
+
+.comparison-value strong {
+    color: var(--color-text);
+    font-size: 2rem;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.comparison-value span {
+    color: var(--color-muted);
+    font-weight: 700;
+}
+
+.comparison-panel.positive .comparison-value i {
+    background: rgba(5, 150, 105, .12);
+    color: #059669;
+}
+
+.comparison-panel.negative .comparison-value i {
+    background: rgba(239, 68, 68, .12);
+    color: #dc2626;
+}
+
+.comparison-grid {
+    display: grid;
+    gap: .75rem;
+}
+
+.comparison-grid > div {
+    padding: .85rem;
+    border: 1px solid rgba(15, 23, 42, .07);
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+.comparison-grid span,
+.comparison-grid small {
+    display: block;
+    color: var(--color-muted);
+    font-size: .78rem;
+}
+
+.comparison-grid strong {
+    display: block;
+    margin: .18rem 0;
+    color: var(--color-text);
+    font-size: 1.05rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.category-insight-list {
+    display: grid;
+    gap: .6rem;
+    margin-top: 1rem;
+}
+
+.category-insight-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: .1rem .75rem;
+    padding: .7rem .8rem;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid rgba(15, 23, 42, .06);
+}
+
+.category-insight-item span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--color-text);
+    font-weight: 700;
+}
+
+.category-insight-item strong {
+    color: var(--brand-success);
+    font-variant-numeric: tabular-nums;
+}
+
+.category-insight-item small {
+    grid-column: 1 / -1;
+    color: var(--color-muted);
+}
+
+.ranking-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.ranking-list {
+    display: grid;
+    gap: .75rem;
+}
+
+.ranking-row {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: .8rem;
+    align-items: start;
+    padding: .85rem;
+    border: 1px solid rgba(15, 23, 42, .06);
+    border-radius: 12px;
+    background: #fff;
+}
+
+.ranking-index {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: #fff7ed;
+    color: #c2410c;
+    font-weight: 900;
+}
+
+.ranking-content {
+    min-width: 0;
+}
+
+.ranking-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.ranking-line strong {
+    color: var(--color-text);
+}
+
+.ranking-line span {
+    display: block;
+    color: var(--color-muted);
+    font-size: .78rem;
+}
+
+.ranking-total {
+    color: var(--brand-success) !important;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.ranking-meter {
+    height: 9px;
+    margin-top: .55rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e5e7eb;
+}
+
+.ranking-meter > div {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #f59e0b, #059669);
+}
+
+@media (max-width: 1199.98px) {
+    .executive-panel,
+    .executive-panel-wide,
+    .comparison-panel {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 576px) {
+    .sales-dashboard-grid {
+        gap: 1rem;
+    }
+
+    .chart-box-lg,
+    .chart-box-md,
+    .chart-box-sm {
+        min-height: 260px;
+    }
+
+    .comparison-value {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .ranking-row {
+        grid-template-columns: 38px 1fr;
+        padding: .75rem;
+    }
+
+    .ranking-index {
+        width: 38px;
+        height: 38px;
+    }
+
+    .ranking-line {
+        flex-direction: column;
+        gap: .35rem;
+    }
+
+    .category-insight-item {
+        grid-template-columns: 1fr;
+    }
+}
