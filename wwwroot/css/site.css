@@ -1292,7 +1292,7 @@ tr.data-filter-hidden { display: none !important; }
 .chart-box-md { min-height: 260px; }
 .chart-box-sm { min-height: 220px; }
 .chart-box-compact { min-height: 220px; }
-.chart-box-donut { min-height: 210px; }
+.chart-box-donut { min-height: 175px; }
 .chart-box-mozo { min-height: 245px; }
 .chart-box-time { min-height: 155px; }
 .chart-box-volume { min-height: 300px; }
