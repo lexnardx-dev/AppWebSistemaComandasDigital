@@ -23,6 +23,7 @@
     var categoriaTotales = Model.VentasPorCategoria.Select(c => c.Total).ToList();
     var mozoLabels = Model.VentasPorMozo.Select(m => m.Nombre).ToList();
     var mozoTotales = Model.VentasPorMozo.Select(m => m.Total).ToList();
+    var mozoPedidos = Model.VentasPorMozo.Select(m => m.Pedidos).ToList();
     var horaLabels = Model.VentasPorHora.Select(h => h.Etiqueta).ToList();
     var horaTotales = Model.VentasPorHora.Select(h => h.Total).ToList();
     var diaLabels = Model.VentasPorDiaSemana.Select(d => d.Dia).ToList();
@@ -30,6 +31,10 @@
 
     var totalRanking = Model.TopPlatos.Sum(p => p.Total);
     var totalRankingSeguro = totalRanking <= 0 ? 1 : totalRanking;
+    var maxRanking = Model.TopPlatos.Any() ? Model.TopPlatos.Max(p => p.Total) : 0;
+    var maxRankingSeguro = maxRanking <= 0 ? 1 : maxRanking;
+    var totalVentasMozo = Model.VentasPorMozo.Sum(m => m.Total);
+    var totalVentasMozoSeguro = totalVentasMozo <= 0 ? 1 : totalVentasMozo;
     var comparativoClass = Model.Comparativo.VariacionPorcentual > 0 ? "positive" : Model.Comparativo.VariacionPorcentual < 0 ? "negative" : "neutral";
     var comparativoIcon = Model.Comparativo.VariacionPorcentual > 0 ? "bi-arrow-up-right" : Model.Comparativo.VariacionPorcentual < 0 ? "bi-arrow-down-right" : "bi-dash-lg";
 }
@@ -124,7 +129,7 @@
     <section class="chart-panel executive-panel comparison-panel @comparativoClass">
         <div class="analytics-card-title">
             <span><i class="bi bi-arrow-left-right text-primary me-2"></i>Comparativo</span>
-            <small class="text-muted">@Model.Comparativo.PeriodoAnterior</small>
+            <small class="text-muted">Actual: @Model.Comparativo.PeriodoActual</small>
         </div>
         <div class="comparison-value">
             <i class="bi @comparativoIcon"></i>
@@ -134,11 +139,13 @@
         <div class="comparison-grid">
             <div>
                 <span>Periodo actual</span>
+                <small class="comparison-date">@Model.Comparativo.PeriodoActual</small>
                 <strong>S/ @Model.Comparativo.TotalActual.ToString("F2")</strong>
                 <small>@Model.Comparativo.PedidosActuales pedidos</small>
             </div>
             <div>
                 <span>Periodo anterior</span>
+                <small class="comparison-date">@Model.Comparativo.PeriodoAnterior</small>
                 <strong>S/ @Model.Comparativo.TotalAnterior.ToString("F2")</strong>
                 <small>@Model.Comparativo.PedidosAnteriores pedidos</small>
             </div>
@@ -173,27 +180,50 @@
         </div>
     </section>
 
-    <section class="chart-panel executive-panel">
+    <section class="chart-panel executive-panel mozo-panel">
         <div class="analytics-card-title">
             <span><i class="bi bi-person-lines-fill text-info me-2"></i>Ventas por mozo</span>
             <small class="text-muted">Productividad comercial</small>
         </div>
-        <div class="chart-box chart-box-md">
+        <div class="chart-box chart-box-md chart-box-mozo">
             <canvas id="mozoChart"></canvas>
         </div>
+        @if (Model.VentasPorMozo.Any())
+        {
+            <div class="mozo-insight-list">
+                @foreach (var mozo in Model.VentasPorMozo.Take(3))
+                {
+                    var participacionMozo = mozo.Total * 100 / totalVentasMozoSeguro;
+                    <div class="mozo-insight-item">
+                        <div>
+                            <strong>@mozo.Nombre</strong>
+                            <span>@mozo.Pedidos pedidos &middot; @participacionMozo.ToString("F1")% de ventas</span>
+                        </div>
+                        <strong>S/ @mozo.Total.ToString("F2")</strong>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state compact-empty-state">
+                <i class="bi bi-inbox"></i>
+                <span>No hay ventas por mozo en este periodo.</span>
+            </div>
+        }
     </section>
 
     <section class="chart-panel executive-panel executive-panel-wide ranking-panel">
         <div class="analytics-card-title">
             <span><i class="bi bi-trophy text-warning me-2"></i>Ranking comercial</span>
-            <small class="text-muted">Productos por facturaci&oacute;n</small>
+            <small class="text-muted">Productos por facturaci&oacute;n &middot; barra vs. #1</small>
         </div>
         @if (Model.TopPlatos.Any())
         {
             <div class="ranking-list">
                 @foreach (var item in Model.TopPlatos.Select((plato, index) => new { plato, index }))
                 {
-                    var width = (item.plato.Total * 100 / totalRankingSeguro).ToString("0.##", CultureInfo.InvariantCulture);
+                    var width = (item.plato.Total * 100 / maxRankingSeguro).ToString("0.##", CultureInfo.InvariantCulture);
                     var participacion = item.plato.Total * 100 / totalRankingSeguro;
                     <div class="ranking-row ranking-page-item">
                         <div class="ranking-index">#@(item.index + 1)</div>
@@ -266,6 +296,7 @@
     const categoriaTotales = @Html.Raw(JsonSerializer.Serialize(categoriaTotales));
     const mozoLabels = @Html.Raw(JsonSerializer.Serialize(mozoLabels));
     const mozoTotales = @Html.Raw(JsonSerializer.Serialize(mozoTotales));
+    const mozoPedidos = @Html.Raw(JsonSerializer.Serialize(mozoPedidos));
     const horaLabels = @Html.Raw(JsonSerializer.Serialize(horaLabels));
     const horaTotales = @Html.Raw(JsonSerializer.Serialize(horaTotales));
     const diaLabels = @Html.Raw(JsonSerializer.Serialize(diaLabels));
@@ -273,6 +304,29 @@
 
     const chartColors = ['#2563eb', '#059669', '#f59e0b', '#0ea5e9', '#ef4444', '#7c3aed', '#14b8a6'];
     const money = value => `S/ ${Number(value || 0).toFixed(2)}`;
+
+    const horizontalValueLabelPlugin = {
+        id: 'horizontalValueLabel',
+        afterDatasetsDraw(chart) {
+            if (chart.canvas.id !== 'mozoChart') return;
+            const dataset = chart.data.datasets[0];
+            const meta = chart.getDatasetMeta(0);
+            const { ctx, chartArea } = chart;
+            ctx.save();
+            ctx.font = '700 11px Segoe UI, system-ui, sans-serif';
+            ctx.fillStyle = '#334155';
+            ctx.textBaseline = 'middle';
+            meta.data.forEach((bar, index) => {
+                const value = Number(dataset.data[index] || 0);
+                if (value <= 0) return;
+                const text = money(value);
+                const x = Math.min(bar.x + 8, chartArea.right - 72);
+                ctx.fillText(text, x, bar.y);
+            });
+            ctx.restore();
+        }
+    };
+    Chart.register(horizontalValueLabelPlugin);
 
     const baseScales = {
         x: { grid: { display: false }, ticks: { color: '#64748b' } },
@@ -376,9 +430,14 @@
             indexAxis: 'y',
             responsive: true,
             maintainAspectRatio: false,
+            layout: { padding: { right: 82 } },
             plugins: {
                 legend: { display: false },
-                tooltip: { callbacks: { label: context => money(context.raw) } }
+                tooltip: {
+                    callbacks: {
+                        label: context => `${money(context.raw)} - ${mozoPedidos[context.dataIndex] || 0} pedidos`
+                    }
+                }
             },
             scales: {
                 x: { beginAtZero: true, grid: { color: '#eef2f7' }, ticks: { color: '#64748b', callback: value => money(value) } },
