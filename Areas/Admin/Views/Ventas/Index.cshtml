@@ -37,6 +37,11 @@
     var totalVentasMozoSeguro = totalVentasMozo <= 0 ? 1 : totalVentasMozo;
     var comparativoClass = Model.Comparativo.VariacionPorcentual > 0 ? "positive" : Model.Comparativo.VariacionPorcentual < 0 ? "negative" : "neutral";
     var comparativoIcon = Model.Comparativo.VariacionPorcentual > 0 ? "bi-arrow-up-right" : Model.Comparativo.VariacionPorcentual < 0 ? "bi-arrow-down-right" : "bi-dash-lg";
+    var platoLider = Model.TopPlatos.OrderByDescending(p => p.Total).FirstOrDefault();
+    var categoriaLider = Model.VentasPorCategoria.OrderByDescending(c => c.Total).FirstOrDefault();
+    var mozoLider = Model.VentasPorMozo.OrderByDescending(m => m.Total).FirstOrDefault();
+    var horaPico = Model.VentasPorHora.OrderByDescending(h => h.Total).FirstOrDefault();
+    var diaFuerte = Model.VentasPorDiaSemana.OrderByDescending(d => d.Total).FirstOrDefault();
 }
 
 <div class="page-heading">
@@ -152,12 +157,12 @@
         </div>
     </section>
 
-    <section class="chart-panel executive-panel">
+    <section class="chart-panel executive-panel compact-analytics-panel">
         <div class="analytics-card-title">
             <span><i class="bi bi-pie-chart text-primary me-2"></i>Ventas por categor&iacute;a</span>
             <small class="text-muted">Participaci&oacute;n comercial</small>
         </div>
-        <div class="chart-box chart-box-md">
+        <div class="chart-box chart-box-compact chart-box-donut">
             <canvas id="categoriaDonaChart"></canvas>
         </div>
         <div class="category-insight-list">
@@ -180,12 +185,12 @@
         </div>
     </section>
 
-    <section class="chart-panel executive-panel mozo-panel">
+    <section class="chart-panel executive-panel compact-analytics-panel mozo-panel">
         <div class="analytics-card-title">
             <span><i class="bi bi-person-lines-fill text-info me-2"></i>Ventas por mozo</span>
             <small class="text-muted">Productividad comercial</small>
         </div>
-        <div class="chart-box chart-box-md chart-box-mozo">
+        <div class="chart-box chart-box-compact chart-box-mozo">
             <canvas id="mozoChart"></canvas>
         </div>
         @if (Model.VentasPorMozo.Any())
@@ -211,6 +216,16 @@
                 <span>No hay ventas por mozo en este periodo.</span>
             </div>
         }
+    </section>
+
+    <section class="chart-panel executive-panel compact-analytics-panel hour-panel">
+        <div class="analytics-card-title">
+            <span><i class="bi bi-clock text-secondary me-2"></i>Ventas por hora</span>
+            <small class="text-muted">Horas de mayor movimiento</small>
+        </div>
+        <div class="chart-box chart-box-compact">
+            <canvas id="horaChart"></canvas>
+        </div>
     </section>
 
     <section class="chart-panel executive-panel executive-panel-wide ranking-panel">
@@ -265,17 +280,56 @@
         }
     </section>
 
-    <section class="chart-panel executive-panel">
+    <section class="chart-panel executive-panel summary-panel">
         <div class="analytics-card-title">
-            <span><i class="bi bi-clock text-secondary me-2"></i>Ventas por hora</span>
-            <small class="text-muted">Horas de mayor movimiento</small>
+            <span><i class="bi bi-stars text-primary me-2"></i>Resumen ejecutivo</span>
+            <small class="text-muted">Lectura r&aacute;pida</small>
         </div>
-        <div class="chart-box chart-box-sm">
-            <canvas id="horaChart"></canvas>
+        <div class="executive-summary-list">
+            <div class="executive-summary-item">
+                <i class="bi bi-award text-warning"></i>
+                <div>
+                    <span>Plato l&iacute;der</span>
+                    <strong>@(platoLider?.Nombre ?? "Sin datos")</strong>
+                    <small>@(platoLider is null ? "No hay ventas registradas" : $"S/ {platoLider.Total:F2} - {platoLider.Cantidad} unidades")</small>
+                </div>
+            </div>
+            <div class="executive-summary-item">
+                <i class="bi bi-pie-chart text-primary"></i>
+                <div>
+                    <span>Categor&iacute;a l&iacute;der</span>
+                    <strong>@(categoriaLider?.Nombre ?? "Sin datos")</strong>
+                    <small>@(categoriaLider is null ? "No hay categorias vendidas" : $"S/ {categoriaLider.Total:F2} - {categoriaLider.Cantidad} unidades")</small>
+                </div>
+            </div>
+            <div class="executive-summary-item">
+                <i class="bi bi-person-check text-info"></i>
+                <div>
+                    <span>Mozo destacado</span>
+                    <strong>@(mozoLider?.Nombre ?? "Sin datos")</strong>
+                    <small>@(mozoLider is null ? "No hay ventas por mozo" : $"S/ {mozoLider.Total:F2} - {mozoLider.Pedidos} pedidos")</small>
+                </div>
+            </div>
+            <div class="executive-summary-item">
+                <i class="bi bi-clock-history text-secondary"></i>
+                <div>
+                    <span>Hora pico</span>
+                    <strong>@(horaPico?.Etiqueta ?? "Sin datos")</strong>
+                    <small>@(horaPico is null ? "Sin movimiento horario" : $"S/ {horaPico.Total:F2}")</small>
+                </div>
+            </div>
+            <div class="executive-summary-item">
+                <i class="bi bi-calendar-check text-success"></i>
+                <div>
+                    <span>D&iacute;a fuerte</span>
+                    <strong>@(diaFuerte?.Dia ?? "Sin datos")</strong>
+                    <small>@(diaFuerte is null ? "Sin movimiento semanal" : $"S/ {diaFuerte.Total:F2}")</small>
+                </div>
+            </div>
         </div>
     </section>
 
-    <section class="chart-panel executive-panel">
+    <section class="chart-panel executive-panel day-panel">
         <div class="analytics-card-title">
             <span><i class="bi bi-calendar-week text-warning me-2"></i>Ventas por d&iacute;a</span>
             <small class="text-muted">Movimiento semanal</small>
