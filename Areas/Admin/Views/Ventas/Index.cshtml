@@ -4,7 +4,8 @@
 @{
     ViewData["Title"] = "Ventas";
 
-    const int RankingPerPage = 5;
+    const int RankingPerPage = 4;
+    const int MozosPerPage = 4;
 
     var hoy = DateTime.Today;
     var inicioSemana = hoy.AddDays(-(int)hoy.DayOfWeek + (hoy.DayOfWeek == DayOfWeek.Sunday ? -6 : 1));
@@ -21,6 +22,7 @@
 
     var categoriaLabels = Model.VentasPorCategoria.Select(c => c.Nombre).ToList();
     var categoriaTotales = Model.VentasPorCategoria.Select(c => c.Total).ToList();
+    var categoriaCantidades = Model.VentasPorCategoria.Select(c => c.Cantidad).ToList();
     var mozoLabels = Model.VentasPorMozo.Select(m => m.Nombre).ToList();
     var mozoTotales = Model.VentasPorMozo.Select(m => m.Total).ToList();
     var mozoPedidos = Model.VentasPorMozo.Select(m => m.Pedidos).ToList();
@@ -37,11 +39,6 @@
     var totalVentasMozoSeguro = totalVentasMozo <= 0 ? 1 : totalVentasMozo;
     var comparativoClass = Model.Comparativo.VariacionPorcentual > 0 ? "positive" : Model.Comparativo.VariacionPorcentual < 0 ? "negative" : "neutral";
     var comparativoIcon = Model.Comparativo.VariacionPorcentual > 0 ? "bi-arrow-up-right" : Model.Comparativo.VariacionPorcentual < 0 ? "bi-arrow-down-right" : "bi-dash-lg";
-    var platoLider = Model.TopPlatos.OrderByDescending(p => p.Total).FirstOrDefault();
-    var categoriaLider = Model.VentasPorCategoria.OrderByDescending(c => c.Total).FirstOrDefault();
-    var mozoLider = Model.VentasPorMozo.OrderByDescending(m => m.Total).FirstOrDefault();
-    var horaPico = Model.VentasPorHora.OrderByDescending(h => h.Total).FirstOrDefault();
-    var diaFuerte = Model.VentasPorDiaSemana.OrderByDescending(d => d.Total).FirstOrDefault();
 }
 
 <div class="page-heading">
@@ -196,18 +193,31 @@
         @if (Model.VentasPorMozo.Any())
         {
             <div class="mozo-insight-list">
-                @foreach (var mozo in Model.VentasPorMozo.Take(3))
+                @foreach (var mozo in Model.VentasPorMozo.Select((mozo, index) => new { mozo, index }))
                 {
-                    var participacionMozo = mozo.Total * 100 / totalVentasMozoSeguro;
-                    <div class="mozo-insight-item">
+                    var participacionMozo = mozo.mozo.Total * 100 / totalVentasMozoSeguro;
+                    <div class="mozo-insight-item mozo-page-item" data-mozo-index="@mozo.index">
                         <div>
-                            <strong>@mozo.Nombre</strong>
-                            <span>@mozo.Pedidos pedidos &middot; @participacionMozo.ToString("F1")% de ventas</span>
+                            <strong>@mozo.mozo.Nombre</strong>
+                            <span>@mozo.mozo.Pedidos pedidos &middot; @participacionMozo.ToString("F1")% de ventas</span>
                         </div>
-                        <strong>S/ @mozo.Total.ToString("F2")</strong>
+                        <strong>S/ @mozo.mozo.Total.ToString("F2")</strong>
                     </div>
                 }
             </div>
+
+            @if (Model.VentasPorMozo.Count > 3)
+            {
+                <div class="mini-pagination">
+                    <button type="button" id="btnPrevMozo" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <span id="mozoPageIndicator" class="fw-semibold"></span>
+                    <button type="button" id="btnNextMozo" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            }
         }
         else
         {
@@ -218,17 +228,28 @@
         }
     </section>
 
-    <section class="chart-panel executive-panel compact-analytics-panel hour-panel">
+    <section class="chart-panel executive-panel compact-analytics-panel time-panel">
         <div class="analytics-card-title">
-            <span><i class="bi bi-clock text-secondary me-2"></i>Ventas por hora</span>
-            <small class="text-muted">Horas de mayor movimiento</small>
+            <span><i class="bi bi-clock text-secondary me-2"></i>Actividad por tiempo</span>
+            <small class="text-muted">Hora y d&iacute;a fuerte</small>
         </div>
-        <div class="chart-box chart-box-compact">
-            <canvas id="horaChart"></canvas>
+        <div class="time-chart-stack">
+            <div>
+                <div class="chart-subtitle">Ventas por hora</div>
+                <div class="chart-box chart-box-time">
+                    <canvas id="horaChart"></canvas>
+                </div>
+            </div>
+            <div>
+                <div class="chart-subtitle">Ventas por d&iacute;a</div>
+                <div class="chart-box chart-box-time">
+                    <canvas id="diaSemanaChart"></canvas>
+                </div>
+            </div>
         </div>
     </section>
 
-    <section class="chart-panel executive-panel executive-panel-wide ranking-panel">
+    <section class="chart-panel executive-panel ranking-panel">
         <div class="analytics-card-title">
             <span><i class="bi bi-trophy text-warning me-2"></i>Ranking comercial</span>
             <small class="text-muted">Productos por facturaci&oacute;n &middot; barra vs. #1</small>
@@ -280,62 +301,13 @@
         }
     </section>
 
-    <section class="chart-panel executive-panel summary-panel">
+    <section class="chart-panel executive-panel volume-panel">
         <div class="analytics-card-title">
-            <span><i class="bi bi-stars text-primary me-2"></i>Resumen ejecutivo</span>
-            <small class="text-muted">Lectura r&aacute;pida</small>
+            <span><i class="bi bi-bar-chart-line text-success me-2"></i>Volumen por categor&iacute;a</span>
+            <small class="text-muted">Unidades vendidas</small>
         </div>
-        <div class="executive-summary-list">
-            <div class="executive-summary-item">
-                <i class="bi bi-award text-warning"></i>
-                <div>
-                    <span>Plato l&iacute;der</span>
-                    <strong>@(platoLider?.Nombre ?? "Sin datos")</strong>
-                    <small>@(platoLider is null ? "No hay ventas registradas" : $"S/ {platoLider.Total:F2} - {platoLider.Cantidad} unidades")</small>
-                </div>
-            </div>
-            <div class="executive-summary-item">
-                <i class="bi bi-pie-chart text-primary"></i>
-                <div>
-                    <span>Categor&iacute;a l&iacute;der</span>
-                    <strong>@(categoriaLider?.Nombre ?? "Sin datos")</strong>
-                    <small>@(categoriaLider is null ? "No hay categorias vendidas" : $"S/ {categoriaLider.Total:F2} - {categoriaLider.Cantidad} unidades")</small>
-                </div>
-            </div>
-            <div class="executive-summary-item">
-                <i class="bi bi-person-check text-info"></i>
-                <div>
-                    <span>Mozo destacado</span>
-                    <strong>@(mozoLider?.Nombre ?? "Sin datos")</strong>
-                    <small>@(mozoLider is null ? "No hay ventas por mozo" : $"S/ {mozoLider.Total:F2} - {mozoLider.Pedidos} pedidos")</small>
-                </div>
-            </div>
-            <div class="executive-summary-item">
-                <i class="bi bi-clock-history text-secondary"></i>
-                <div>
-                    <span>Hora pico</span>
-                    <strong>@(horaPico?.Etiqueta ?? "Sin datos")</strong>
-                    <small>@(horaPico is null ? "Sin movimiento horario" : $"S/ {horaPico.Total:F2}")</small>
-                </div>
-            </div>
-            <div class="executive-summary-item">
-                <i class="bi bi-calendar-check text-success"></i>
-                <div>
-                    <span>D&iacute;a fuerte</span>
-                    <strong>@(diaFuerte?.Dia ?? "Sin datos")</strong>
-                    <small>@(diaFuerte is null ? "Sin movimiento semanal" : $"S/ {diaFuerte.Total:F2}")</small>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="chart-panel executive-panel day-panel">
-        <div class="analytics-card-title">
-            <span><i class="bi bi-calendar-week text-warning me-2"></i>Ventas por d&iacute;a</span>
-            <small class="text-muted">Movimiento semanal</small>
-        </div>
-        <div class="chart-box chart-box-sm">
-            <canvas id="diaSemanaChart"></canvas>
+        <div class="chart-box chart-box-volume">
+            <canvas id="categoriaUnidadesChart"></canvas>
         </div>
     </section>
 </div>
@@ -348,6 +320,7 @@
     const evolucionPedidos = @Html.Raw(JsonSerializer.Serialize(evolucionPedidos));
     const categoriaLabels = @Html.Raw(JsonSerializer.Serialize(categoriaLabels));
     const categoriaTotales = @Html.Raw(JsonSerializer.Serialize(categoriaTotales));
+    const categoriaCantidades = @Html.Raw(JsonSerializer.Serialize(categoriaCantidades));
     const mozoLabels = @Html.Raw(JsonSerializer.Serialize(mozoLabels));
     const mozoTotales = @Html.Raw(JsonSerializer.Serialize(mozoTotales));
     const mozoPedidos = @Html.Raw(JsonSerializer.Serialize(mozoPedidos));
@@ -399,6 +372,9 @@
                     borderColor: '#059669',
                     borderWidth: 1,
                     borderRadius: 8,
+                    maxBarThickness: 28,
+                    categoryPercentage: .48,
+                    barPercentage: .58,
                     yAxisID: 'y'
                 },
                 {
@@ -467,29 +443,44 @@
         }
     });
 
-    new Chart(document.getElementById('mozoChart'), {
+    const MOZOS_PER_PAGE = @MozosPerPage;
+    let currentMozoPage = 1;
+    const totalMozoPages = Math.max(1, Math.ceil(mozoLabels.length / MOZOS_PER_PAGE));
+    const mozoPageSlice = () => {
+        const start = (currentMozoPage - 1) * MOZOS_PER_PAGE;
+        const end = start + MOZOS_PER_PAGE;
+        return { start, end };
+    };
+
+    const mozoChart = new Chart(document.getElementById('mozoChart'), {
         type: 'bar',
         data: {
-            labels: mozoLabels.length ? mozoLabels : ['Sin datos'],
+            labels: mozoLabels.length ? mozoLabels.slice(0, MOZOS_PER_PAGE) : ['Sin datos'],
             datasets: [{
                 label: 'Ventas',
-                data: mozoTotales.length ? mozoTotales : [0],
+                data: mozoTotales.length ? mozoTotales.slice(0, MOZOS_PER_PAGE) : [0],
                 backgroundColor: 'rgba(37, 99, 235, .16)',
                 borderColor: '#2563eb',
                 borderWidth: 1,
-                borderRadius: 8
+                borderRadius: 8,
+                maxBarThickness: 28,
+                categoryPercentage: .58,
+                barPercentage: .68
             }]
         },
         options: {
             indexAxis: 'y',
             responsive: true,
             maintainAspectRatio: false,
-            layout: { padding: { right: 82 } },
+            layout: { padding: { right: 78 } },
             plugins: {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: context => `${money(context.raw)} - ${mozoPedidos[context.dataIndex] || 0} pedidos`
+                        label: context => {
+                            const { start } = mozoPageSlice();
+                            return `${money(context.raw)} - ${mozoPedidos[start + context.dataIndex] || 0} pedidos`;
+                        }
                     }
                 }
             },
@@ -510,7 +501,10 @@
                 backgroundColor: 'rgba(14, 165, 233, .18)',
                 borderColor: '#0ea5e9',
                 borderWidth: 1,
-                borderRadius: 8
+                borderRadius: 8,
+                maxBarThickness: 26,
+                categoryPercentage: .55,
+                barPercentage: .62
             }]
         },
         options: {
@@ -534,7 +528,10 @@
                 backgroundColor: 'rgba(245, 158, 11, .22)',
                 borderColor: '#f59e0b',
                 borderWidth: 1,
-                borderRadius: 8
+                borderRadius: 8,
+                maxBarThickness: 26,
+                categoryPercentage: .55,
+                barPercentage: .62
             }]
         },
         options: {
@@ -547,6 +544,75 @@
             scales: baseScales
         }
     });
+
+    new Chart(document.getElementById('categoriaUnidadesChart'), {
+        type: 'bar',
+        data: {
+            labels: categoriaLabels.length ? categoriaLabels : ['Sin datos'],
+            datasets: [{
+                label: 'Unidades',
+                data: categoriaCantidades.length ? categoriaCantidades : [0],
+                backgroundColor: 'rgba(5, 150, 105, .16)',
+                borderColor: '#059669',
+                borderWidth: 1,
+                borderRadius: 8,
+                maxBarThickness: 30,
+                categoryPercentage: .62,
+                barPercentage: .7
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: context => `${context.raw} unidades` } }
+            },
+            scales: {
+                x: { beginAtZero: true, grid: { color: '#eef2f7' }, ticks: { color: '#64748b', precision: 0 } },
+                y: { grid: { display: false }, ticks: { color: '#334155' } }
+            }
+        }
+    });
+
+    const mozoRows = document.querySelectorAll('.mozo-page-item');
+    const mozoIndicator = document.getElementById('mozoPageIndicator');
+    const mozoPrev = document.getElementById('btnPrevMozo');
+    const mozoNext = document.getElementById('btnNextMozo');
+
+    function renderMozoPage() {
+        const { start, end } = mozoPageSlice();
+        mozoRows.forEach((item, index) => {
+            item.style.display = index >= start && index < end ? '' : 'none';
+        });
+
+        if (mozoLabels.length) {
+            mozoChart.data.labels = mozoLabels.slice(start, end);
+            mozoChart.data.datasets[0].data = mozoTotales.slice(start, end);
+        }
+        mozoChart.update();
+
+        if (mozoIndicator) mozoIndicator.textContent = `Pagina ${currentMozoPage} de ${totalMozoPages}`;
+        if (mozoPrev) mozoPrev.disabled = currentMozoPage === 1;
+        if (mozoNext) mozoNext.disabled = currentMozoPage === totalMozoPages;
+    }
+
+    mozoPrev?.addEventListener('click', () => {
+        if (currentMozoPage > 1) {
+            currentMozoPage--;
+            renderMozoPage();
+        }
+    });
+
+    mozoNext?.addEventListener('click', () => {
+        if (currentMozoPage < totalMozoPages) {
+            currentMozoPage++;
+            renderMozoPage();
+        }
+    });
+
+    renderMozoPage();
 
     const RANKING_PER_PAGE = @RankingPerPage;
     const rankingRows = document.querySelectorAll('.ranking-list .ranking-page-item');
