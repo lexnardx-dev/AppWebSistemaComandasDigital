@@ -159,7 +159,7 @@
             <span><i class="bi bi-pie-chart text-primary me-2"></i>Ventas por categor&iacute;a</span>
             <small class="text-muted">Participaci&oacute;n comercial</small>
         </div>
-        <div class="chart-box chart-box-compact chart-box-donut">
+        <div class="chart-box chart-box-donut">
             <canvas id="categoriaDonaChart"></canvas>
         </div>
         <div class="category-insight-list">
@@ -414,7 +414,14 @@
             maintainAspectRatio: false,
             cutout: '68%',
             plugins: {
-                legend: { position: 'bottom', labels: { boxWidth: 10, color: '#334155' } },
+                legend: {
+                    position: 'right',
+                    labels: {
+                        boxWidth: 10,
+                        color: '#334155',
+                        padding: 10
+                    }
+                },
                 tooltip: { callbacks: { label: context => `${context.label}: ${money(context.raw)}` } }
             }
         }
