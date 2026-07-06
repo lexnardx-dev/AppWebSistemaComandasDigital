@@ -150,7 +150,7 @@
     else
     {
         <div class="table-responsive">
-            <table class="table table-hover table-modern align-middle mb-0">
+            <table id="tablaInicioPedidos" class="table table-hover table-modern align-middle mb-0">
                 <thead>
                     <tr>
                         <th style="width:70px">#</th>
@@ -172,7 +172,7 @@
                             "Cancelado" => "status-cancelled",
                             _ => "status-pending"
                         };
-                        <tr>
+                        <tr data-filter-row>
                             <td class="fw-bold text-muted small">#@p.Id</td>
                             <td><i class="bi bi-table me-1 text-secondary"></i>@p.MesaNumero</td>
                             <td class="small">@p.UsuarioNombre</td>
@@ -194,6 +194,7 @@
                 Ver todos los pedidos <i class="bi bi-arrow-right ms-1"></i>
             </a>
         </div>
+        <div id="paginacionInicioPedidos"></div>
     }
 </div>
 
@@ -227,6 +228,12 @@
             }
         });
     }
+
+    crearPaginacionTabla({
+        tableId: 'tablaInicioPedidos',
+        paginationId: 'paginacionInicioPedidos',
+        pageSize: 5
+    });
 
     const connection = new signalR.HubConnectionBuilder()
         .withUrl("/hubs/pedidos")

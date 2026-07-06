@@ -6,6 +6,7 @@
 
     const int RankingPerPage = 4;
     const int MozosPerPage = 4;
+    const int CategoriasPerPage = 4;
 
     var hoy = DateTime.Today;
     var inicioSemana = hoy.AddDays(-(int)hoy.DayOfWeek + (hoy.DayOfWeek == DayOfWeek.Sunday ? -6 : 1));
@@ -163,13 +164,13 @@
             <canvas id="categoriaDonaChart"></canvas>
         </div>
         <div class="category-insight-list">
-            @foreach (var categoria in Model.VentasPorCategoria.Take(4))
+            @foreach (var item in Model.VentasPorCategoria.Select((categoria, index) => new { categoria, index }))
             {
-                var porcentaje = categoria.Total * 100 / Math.Max(1, Model.TotalVendido);
-                <div class="category-insight-item">
-                    <span>@categoria.Nombre</span>
-                    <strong>S/ @categoria.Total.ToString("F2")</strong>
-                    <small>@porcentaje.ToString("F1")% &middot; @categoria.Cantidad unidades</small>
+                var porcentaje = item.categoria.Total * 100 / Math.Max(1, Model.TotalVendido);
+                <div class="category-insight-item category-page-item" data-category-index="@item.index">
+                    <span>@item.categoria.Nombre</span>
+                    <strong>S/ @item.categoria.Total.ToString("F2")</strong>
+                    <small>@porcentaje.ToString("F1")% &middot; @item.categoria.Cantidad unidades</small>
                 </div>
             }
             @if (!Model.VentasPorCategoria.Any())
@@ -180,6 +181,18 @@
                 </div>
             }
         </div>
+        @if (Model.VentasPorCategoria.Count > CategoriasPerPage)
+        {
+            <div class="mini-pagination">
+                <button type="button" id="btnPrevCategoriaVenta" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <span id="categoriaVentaPageIndicator" class="fw-semibold"></span>
+                <button type="button" id="btnNextCategoriaVenta" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        }
     </section>
 
     <section class="chart-panel executive-panel compact-analytics-panel mozo-panel">
@@ -331,6 +344,7 @@
 
     const chartColors = ['#2563eb', '#059669', '#f59e0b', '#0ea5e9', '#ef4444', '#7c3aed', '#14b8a6'];
     const money = value => `S/ ${Number(value || 0).toFixed(2)}`;
+    const CATEGORY_PER_PAGE = @CategoriasPerPage;
 
     const baseScales = {
         x: { grid: { display: false }, ticks: { color: '#64748b' } },
@@ -404,7 +418,7 @@
             labels: categoriaLabels.length ? categoriaLabels : ['Sin datos'],
             datasets: [{
                 data: categoriaTotales.length ? categoriaTotales : [1],
-                backgroundColor: categoriaLabels.length ? chartColors : ['#e5e7eb'],
+                backgroundColor: categoriaLabels.length ? categoriaLabels.map((_, index) => chartColors[index % chartColors.length]) : ['#e5e7eb'],
                 borderWidth: 0,
                 hoverOffset: 6
             }]
@@ -426,6 +440,41 @@
             }
         }
     });
+
+    const categoryRows = document.querySelectorAll('.category-page-item');
+    const categoryIndicator = document.getElementById('categoriaVentaPageIndicator');
+    const categoryPrev = document.getElementById('btnPrevCategoriaVenta');
+    const categoryNext = document.getElementById('btnNextCategoriaVenta');
+    let currentCategoryPage = 1;
+    const totalCategoryPages = Math.max(1, Math.ceil(categoryRows.length / CATEGORY_PER_PAGE));
+
+    function renderCategoryPage() {
+        const start = (currentCategoryPage - 1) * CATEGORY_PER_PAGE;
+        const end = start + CATEGORY_PER_PAGE;
+        categoryRows.forEach((item, index) => {
+            item.style.display = index >= start && index < end ? '' : 'none';
+        });
+
+        if (categoryIndicator) categoryIndicator.textContent = `Pagina ${currentCategoryPage} de ${totalCategoryPages}`;
+        if (categoryPrev) categoryPrev.disabled = currentCategoryPage === 1;
+        if (categoryNext) categoryNext.disabled = currentCategoryPage === totalCategoryPages;
+    }
+
+    categoryPrev?.addEventListener('click', () => {
+        if (currentCategoryPage > 1) {
+            currentCategoryPage--;
+            renderCategoryPage();
+        }
+    });
+
+    categoryNext?.addEventListener('click', () => {
+        if (currentCategoryPage < totalCategoryPages) {
+            currentCategoryPage++;
+            renderCategoryPage();
+        }
+    });
+
+    renderCategoryPage();
 
     const MOZOS_PER_PAGE = @MozosPerPage;
     let currentMozoPage = 1;

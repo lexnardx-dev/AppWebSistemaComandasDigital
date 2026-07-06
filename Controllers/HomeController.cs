@@ -41,7 +41,6 @@ namespace AppWebSistemaComandasDigital.Controllers
             ViewBag.UltimosPedidos = pedidos
                 .Where(p => p.Estado != EstadoPedido.Entregado.ToString()
                          && p.Estado != EstadoPedido.Cancelado.ToString())
-                .Take(5)
                 .ToList();
 
             return View();

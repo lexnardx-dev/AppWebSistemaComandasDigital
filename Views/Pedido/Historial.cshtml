@@ -103,6 +103,7 @@
             </tbody>
         </table>
     </div>
+    <div id="paginacionHistorial"></div>
 </div>
 
 @section Scripts {
@@ -110,6 +111,12 @@
     const filtroHistorial = document.getElementById('filtroHistorial');
     const tablaHistorial = document.getElementById('tablaHistorial');
     const emptyHistorialFilter = document.getElementById('emptyHistorialFilter');
+    const paginacionHistorial = crearPaginacionTabla({
+        tableId: 'tablaHistorial',
+        paginationId: 'paginacionHistorial',
+        pageSize: 10,
+        emptyId: 'emptyHistorialFilter'
+    });
 
     if (filtroHistorial && tablaHistorial) {
         filtroHistorial.addEventListener('input', () => {
@@ -121,6 +128,7 @@
                 if (visible) visibles++;
             });
             if (emptyHistorialFilter) emptyHistorialFilter.style.display = visibles === 0 ? 'block' : 'none';
+            paginacionHistorial.render(true);
         });
     }
 </script>

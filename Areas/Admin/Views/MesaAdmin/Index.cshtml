@@ -37,7 +37,7 @@
 
 <div class="card p-0">
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table id="tablaMesaAdmin" class="table table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
                     <th style="width:60px">#</th>
@@ -50,7 +50,7 @@
             <tbody>
                 @if (!Model.Any())
                 {
-                    <tr>
+                    <tr data-filter-row>
                         <td colspan="5" class="text-center text-muted py-4">
                             <i class="bi bi-inbox me-2"></i>No hay mesas registradas.
                         </td>
@@ -90,6 +90,7 @@
             </tbody>
         </table>
     </div>
+    <div id="paginacionMesaAdmin"></div>
 </div>
 
 <div class="modal fade" id="modalEliminar" tabindex="-1">
@@ -117,6 +118,12 @@
 
 @section Scripts {
 <script>
+    crearPaginacionTabla({
+        tableId: 'tablaMesaAdmin',
+        paginationId: 'paginacionMesaAdmin',
+        pageSize: 10
+    });
+
     function confirmarEliminar(id, numero) {
         document.getElementById('nombreMesa').textContent = 'Mesa ' + numero;
         document.getElementById('formEliminar').action = `/Admin/MesaAdmin/Delete/${id}`;

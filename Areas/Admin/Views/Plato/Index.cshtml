@@ -89,6 +89,7 @@
             </tbody>
         </table>
     </div>
+    <div id="paginacionPlatos"></div>
 </div>
 
 <!-- Modal 1: Confirmar eliminación simple (sin pedidos) -->
@@ -162,7 +163,7 @@
 
 @section Scripts {
 <script>
-        function configurarFiltroTabla(searchId, selectId, tableId, emptyId) {
+    function configurarFiltroTabla(searchId, selectId, tableId, emptyId, pagination) {
         const search = document.getElementById(searchId);
         const select = document.getElementById(selectId);
         const table = document.getElementById(tableId);
@@ -182,13 +183,21 @@
                 if (visible) visibles++;
             });
             if (empty) empty.style.display = visibles === 0 ? 'block' : 'none';
+            pagination?.render(true);
         };
 
         search.addEventListener('input', filtrar);
         if (select) select.addEventListener('change', filtrar);
     }
 
-    configurarFiltroTabla('filtroPlatos', 'filtroCategoriaPlatos', 'tablaPlatos', 'emptyPlatosFilter');
+    const paginacionPlatos = crearPaginacionTabla({
+        tableId: 'tablaPlatos',
+        paginationId: 'paginacionPlatos',
+        pageSize: 10,
+        emptyId: 'emptyPlatosFilter'
+    });
+
+    configurarFiltroTabla('filtroPlatos', 'filtroCategoriaPlatos', 'tablaPlatos', 'emptyPlatosFilter', paginacionPlatos);
 
     function confirmarEliminar(id, nombre) {
         document.getElementById('nombrePlato').textContent = nombre;

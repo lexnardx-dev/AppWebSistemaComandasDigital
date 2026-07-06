@@ -84,6 +84,7 @@
             </tbody>
         </table>
     </div>
+    <div id="paginacionCategorias"></div>
 </div>
 
 <!-- Modal 1: Confirmar eliminación simple (sin platos) -->
@@ -157,7 +158,7 @@
 
 @section Scripts {
 <script>
-        function configurarFiltroTabla(searchId, selectId, tableId, emptyId) {
+    function configurarFiltroTabla(searchId, selectId, tableId, emptyId, pagination) {
         const search = document.getElementById(searchId);
         const select = document.getElementById(selectId);
         const table = document.getElementById(tableId);
@@ -175,13 +176,21 @@
                 if (visible) visibles++;
             });
             if (empty) empty.style.display = visibles === 0 ? 'block' : 'none';
+            pagination?.render(true);
         };
 
         search.addEventListener('input', filtrar);
         if (select) select.addEventListener('change', filtrar);
     }
 
-    configurarFiltroTabla('filtroCategorias', 'filtroEstadoCategorias', 'tablaCategorias', 'emptyCategoriasFilter');
+    const paginacionCategorias = crearPaginacionTabla({
+        tableId: 'tablaCategorias',
+        paginationId: 'paginacionCategorias',
+        pageSize: 10,
+        emptyId: 'emptyCategoriasFilter'
+    });
+
+    configurarFiltroTabla('filtroCategorias', 'filtroEstadoCategorias', 'tablaCategorias', 'emptyCategoriasFilter', paginacionCategorias);
 
     function confirmarEliminar(id, nombre) {
         document.getElementById('nombreCategoria').textContent = nombre;

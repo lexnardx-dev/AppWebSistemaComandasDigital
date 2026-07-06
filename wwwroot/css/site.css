@@ -937,7 +937,33 @@ html, body { font-family: Inter, 'Segoe UI', system-ui, sans-serif; }
     color: var(--color-muted);
 }
 
-tr.data-filter-hidden { display: none !important; }
+tr.data-filter-hidden,
+tr.data-pagination-hidden { display: none !important; }
+
+.table-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: .75rem;
+    padding: .85rem 1rem;
+    border-top: 1px solid rgba(15, 23, 42, .08);
+    background: #fff;
+}
+
+.table-pagination button {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 10px;
+}
+
+.table-pagination span {
+    min-width: 104px;
+    text-align: center;
+    color: #64748b;
+    font-size: .84rem;
+    font-weight: 700;
+}
 
 .order-create-grid {
     display: grid;

@@ -9,6 +9,7 @@ namespace AppWebSistemaComandasDigital.Repositories
         public async Task<IEnumerable<Plato>> GetAllAsync() =>
             await context.Platos.AsNoTracking()
                 .Include(p => p.Categoria)
+                .OrderBy(p => p.Id)
                 .ToListAsync();
 
         public async Task<Plato?> GetByIdAsync(int id) =>
@@ -20,12 +21,14 @@ namespace AppWebSistemaComandasDigital.Repositories
             await context.Platos.AsNoTracking()
                 .Where(p => p.CategoriaId == categoriaId)
                 .Include(p => p.Categoria)
+                .OrderBy(p => p.Id)
                 .ToListAsync();
 
         public async Task<IEnumerable<Plato>> GetDisponiblesAsync() =>
             await context.Platos.AsNoTracking()
                 .Where(p => p.Disponible)
                 .Include(p => p.Categoria)
+                .OrderBy(p => p.Id)
                 .ToListAsync();
 
         public async Task<Plato> CreateAsync(Plato plato)

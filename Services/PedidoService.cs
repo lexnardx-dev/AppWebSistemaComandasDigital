@@ -72,7 +72,6 @@ namespace AppWebSistemaComandasDigital.Services
                 })
                 .OrderByDescending(c => c.Total)
                 .ThenByDescending(c => c.Cantidad)
-                .Take(7)
                 .ToList();
 
             var evolucion = ventas
@@ -97,7 +96,6 @@ namespace AppWebSistemaComandasDigital.Services
                 })
                 .OrderByDescending(m => m.Total)
                 .ThenByDescending(m => m.Pedidos)
-                .Take(6)
                 .ToList();
 
             var ventasPorHora = ventas

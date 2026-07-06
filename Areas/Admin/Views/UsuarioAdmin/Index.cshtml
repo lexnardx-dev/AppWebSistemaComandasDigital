@@ -118,6 +118,7 @@
             </tbody>
         </table>
     </div>
+    <div id="paginacionUsuarios"></div>
 </div>
 
 <div class="modal fade" id="modalEliminar" tabindex="-1">
@@ -171,7 +172,7 @@
 
 @section Scripts {
 <script>
-        function configurarFiltroTabla(searchId, selectId, tableId, emptyId) {
+    function configurarFiltroTabla(searchId, selectId, tableId, emptyId, pagination) {
         const search = document.getElementById(searchId);
         const select = document.getElementById(selectId);
         const table = document.getElementById(tableId);
@@ -189,13 +190,21 @@
                 if (visible) visibles++;
             });
             if (empty) empty.style.display = visibles === 0 ? 'block' : 'none';
+            pagination?.render(true);
         };
 
         search.addEventListener('input', filtrar);
         if (select) select.addEventListener('change', filtrar);
     }
 
-    configurarFiltroTabla('filtroUsuarios', 'filtroRolUsuarios', 'tablaUsuarios', 'emptyUsuariosFilter');
+    const paginacionUsuarios = crearPaginacionTabla({
+        tableId: 'tablaUsuarios',
+        paginationId: 'paginacionUsuarios',
+        pageSize: 10,
+        emptyId: 'emptyUsuariosFilter'
+    });
+
+    configurarFiltroTabla('filtroUsuarios', 'filtroRolUsuarios', 'tablaUsuarios', 'emptyUsuariosFilter', paginacionUsuarios);
 
     function confirmarEliminar(id, nombre) {
         document.getElementById('nombreUsuario').textContent = nombre;
