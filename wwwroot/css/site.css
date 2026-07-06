@@ -1688,9 +1688,9 @@ tr.data-filter-hidden { display: none !important; }
 
 /* Ajuste puntual: dona de Ventas por categoria */
 .chart-box.chart-box-donut {
-    height: 120px;
-    min-height: 120px;
-    max-height: 120px;
+    height: 150px;
+    min-height: 150px;
+    max-height: 150px;
 }
 
 .chart-box.chart-box-donut canvas,
