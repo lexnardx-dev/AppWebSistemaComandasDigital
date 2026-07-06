@@ -1695,6 +1695,6 @@ tr.data-filter-hidden { display: none !important; }
 
 .chart-box.chart-box-donut canvas,
 #categoriaDonaChart {
-    height: 120px !important;
-    max-height: 120px !important;
+    height: 150px !important;
+    max-height: 150px !important;
 }
