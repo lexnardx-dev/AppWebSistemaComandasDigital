@@ -1303,6 +1303,8 @@ tr.data-pagination-hidden { display: none !important; }
 }
 
 .comparison-panel {
+    display: flex;
+    flex-direction: column;
     grid-column: span 4;
 }
 
@@ -1314,7 +1316,11 @@ tr.data-pagination-hidden { display: none !important; }
     grid-column: span 7;
 }
 
-.chart-box-lg { min-height: 320px; }
+.chart-box-lg {
+    height: 300px;
+    min-height: 300px;
+    max-height: 300px;
+}
 .chart-box-md { min-height: 260px; }
 .chart-box-sm { min-height: 220px; }
 .chart-box-compact { min-height: 220px; }
