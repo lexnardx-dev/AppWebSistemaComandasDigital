@@ -1688,13 +1688,13 @@ tr.data-filter-hidden { display: none !important; }
 
 /* Ajuste puntual: dona de Ventas por categoria */
 .chart-box.chart-box-donut {
-    height: 150px;
-    min-height: 150px;
-    max-height: 150px;
+    height: 155px;
+    min-height: 155px;
+    max-height: 155px;
 }
 
 .chart-box.chart-box-donut canvas,
 #categoriaDonaChart {
-    height: 150px !important;
-    max-height: 150px !important;
+    height: 155px !important;
+    max-height: 155px !important;
 }

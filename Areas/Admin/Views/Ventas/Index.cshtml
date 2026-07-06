@@ -332,29 +332,6 @@
     const chartColors = ['#2563eb', '#059669', '#f59e0b', '#0ea5e9', '#ef4444', '#7c3aed', '#14b8a6'];
     const money = value => `S/ ${Number(value || 0).toFixed(2)}`;
 
-    const horizontalValueLabelPlugin = {
-        id: 'horizontalValueLabel',
-        afterDatasetsDraw(chart) {
-            if (chart.canvas.id !== 'mozoChart') return;
-            const dataset = chart.data.datasets[0];
-            const meta = chart.getDatasetMeta(0);
-            const { ctx, chartArea } = chart;
-            ctx.save();
-            ctx.font = '700 11px Segoe UI, system-ui, sans-serif';
-            ctx.fillStyle = '#334155';
-            ctx.textBaseline = 'middle';
-            meta.data.forEach((bar, index) => {
-                const value = Number(dataset.data[index] || 0);
-                if (value <= 0) return;
-                const text = money(value);
-                const x = Math.min(bar.x + 8, chartArea.right - 72);
-                ctx.fillText(text, x, bar.y);
-            });
-            ctx.restore();
-        }
-    };
-    Chart.register(horizontalValueLabelPlugin);
-
     const baseScales = {
         x: { grid: { display: false }, ticks: { color: '#64748b' } },
         y: { beginAtZero: true, grid: { color: '#eef2f7' }, ticks: { color: '#64748b' } }
@@ -472,7 +449,7 @@
             indexAxis: 'y',
             responsive: true,
             maintainAspectRatio: false,
-            layout: { padding: { right: 78 } },
+            layout: { padding: { right: 12 } },
             plugins: {
                 legend: { display: false },
                 tooltip: {
