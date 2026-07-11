@@ -43,6 +43,7 @@ namespace AppWebSistemaComandasDigital.Repositories
             existente.PasswordHash = usuario.PasswordHash;
             existente.Activo = usuario.Activo;
             existente.RolId = usuario.RolId;
+            existente.ImagenUrl = usuario.ImagenUrl;
 
             await context.SaveChangesAsync();
             return existente;

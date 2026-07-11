@@ -18,7 +18,7 @@
 <div class="row justify-content-center">
     <div class="col-md-7">
         <div class="card p-4">
-            <form asp-action="Editar" asp-route-id="@platoId" method="post">
+            <form asp-action="Editar" asp-route-id="@platoId" method="post" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
 
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger small py-2 mb-3"></div>
@@ -69,6 +69,13 @@
                     <span asp-validation-for="ImagenUrl" class="text-danger small"></span>
                 </div>
 
+                <div class="mb-3">
+                    <label asp-for="ImagenArchivo" class="form-label fw-semibold small">Subir nueva imagen</label>
+                    <input asp-for="ImagenArchivo" type="file" accept="image/png,image/jpeg,image/webp" class="form-control" />
+                    <div class="form-text">Si subes una imagen, reemplazara la URL actual.</div>
+                    <span asp-validation-for="ImagenArchivo" class="text-danger small"></span>
+                </div>
+
                 <div id="previewContainer" class="mb-3 @(string.IsNullOrEmpty(Model.ImagenUrl) ? "d-none" : "")">
                     <p class="form-label fw-semibold small mb-1">Vista previa</p>
                     <img id="previewImg" src="@Model.ImagenUrl" alt="preview"
@@ -99,6 +106,7 @@
     @await Html.PartialAsync("_ValidationScriptsPartial")
     <script>
         const urlInput = document.getElementById('inputImagenUrl');
+        const fileInput = document.querySelector('input[name="ImagenArchivo"]');
         const preview  = document.getElementById('previewContainer');
         const img      = document.getElementById('previewImg');
 
@@ -111,6 +119,13 @@
             } else {
                 preview.classList.add('d-none');
             }
+        });
+
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files?.[0];
+            if (!file) return;
+            img.src = URL.createObjectURL(file);
+            preview.classList.remove('d-none');
         });
     </script>
 }

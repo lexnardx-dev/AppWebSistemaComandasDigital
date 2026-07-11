@@ -13,7 +13,7 @@
 <div class="row g-4">
     <div class="col-lg-8">
         <div class="card surface-card p-4">
-            <form asp-action="Index" method="post">
+            <form asp-action="Index" method="post" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger small"></div>
 
@@ -52,6 +52,13 @@
                     <div class="col-md-9">
                         <label asp-for="LogoUrl" class="form-label fw-semibold small">Logo URL</label>
                         <input asp-for="LogoUrl" class="form-control" placeholder="https://..." />
+                        <span asp-validation-for="LogoUrl" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="LogoArchivo" class="form-label fw-semibold small">Subir logo</label>
+                        <input asp-for="LogoArchivo" type="file" accept="image/png,image/jpeg,image/webp" class="form-control" />
+                        <div class="form-text">JPG, PNG o WebP. Maximo 5 MB.</div>
+                        <span asp-validation-for="LogoArchivo" class="text-danger small"></span>
                     </div>
                     <div class="col-md-3">
                         <label asp-for="ColorMarca" class="form-label fw-semibold small">Color marca</label>

@@ -16,8 +16,10 @@ namespace AppWebSistemaComandasDigital.Dtos
 
         public bool Disponible { get; set; } = true;
 
-        [MaxLength(250)]
+        [MaxLength(500)]
         public string? ImagenUrl { get; set; }
+
+        public IFormFile? ImagenArchivo { get; set; }
 
         [Required]
         public int CategoriaId { get; set; }

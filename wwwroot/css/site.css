@@ -502,11 +502,15 @@ html, body { height: 100%; font-family: 'Segoe UI', system-ui, sans-serif; }
 .metric-success { --metric-accent: #16a34a; }
 .metric-warning { --metric-accent: #f59e0b; }
 .metric-info { --metric-accent: #0891b2; }
+.metric-danger { --metric-accent: #dc2626; }
+.metric-secondary { --metric-accent: #64748b; }
 
 .metric-icon.metric-primary { --metric-accent: #2563eb; }
 .metric-icon.metric-success { --metric-accent: #16a34a; }
 .metric-icon.metric-warning { --metric-accent: #f59e0b; }
 .metric-icon.metric-info { --metric-accent: #0891b2; }
+.metric-icon.metric-danger { --metric-accent: #dc2626; }
+.metric-icon.metric-secondary { --metric-accent: #64748b; }
 
 .action-btn {
     width: 32px;

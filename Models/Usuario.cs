@@ -19,11 +19,15 @@ namespace AppWebSistemaComandasDigital.Models
 
         public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 
+        [MaxLength(500)]
+        public string? ImagenUrl { get; set; }
+
         // FK
         public int RolId { get; set; }
 
         // Navegación
         public Rol Rol { get; set; } = null!;
         public ICollection<Pedido> Pedidos { get; set; } = [];
+        public ICollection<Notificacion> Notificaciones { get; set; } = [];
     }
 }

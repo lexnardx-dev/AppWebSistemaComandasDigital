@@ -1,39 +1,154 @@
+@model AppWebSistemaComandasDigital.Dtos.NotificacionesViewDTO
+@using AppWebSistemaComandasDigital.Models
 @{
     ViewData["Title"] = "Notificaciones";
     var rol = User.FindFirst("rol_nombre")?.Value ?? "";
+    var tipos = new[] { TiposNotificacion.Pedido, TiposNotificacion.EstadoPedido, TiposNotificacion.Mesa, TiposNotificacion.Sistema };
+    var prioridades = Enum.GetNames<PrioridadNotificacion>();
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
     <div>
         <h3 class="fw-bold mb-0"><i class="bi bi-bell text-warning me-2"></i>Notificaciones</h3>
-        <p class="text-muted mb-0 small">Centro operativo en vivo. No guarda historial en base de datos.</p>
+        <p class="text-muted mb-0 small">Historial operativo y eventos en vivo del turno.</p>
     </div>
-    <button class="btn btn-outline-secondary btn-sm" type="button" onclick="limpiarEventos()">
-        <i class="bi bi-trash3 me-1"></i>Limpiar
-    </button>
+    <form asp-action="MarcarTodasLeidas" method="post">
+        @Html.AntiForgeryToken()
+        <button class="btn btn-outline-secondary btn-sm" type="submit" @(Model.NoLeidas == 0 ? "disabled" : "")>
+            <i class="bi bi-check2-all me-1"></i>Marcar todo
+        </button>
+    </form>
 </div>
 
 <div class="row g-4">
     <div class="col-lg-4">
-        <div class="card surface-card p-4">
+        <div class="card surface-card p-4 mb-4">
             <div class="d-flex align-items-center gap-3">
                 <div class="metric-icon metric-warning">
-                    <i class="bi bi-broadcast"></i>
+                    <i class="bi bi-inbox"></i>
                 </div>
                 <div>
-                    <h5 class="fw-bold mb-0">Escuchando eventos</h5>
+                    <h5 class="fw-bold mb-0">@Model.NoLeidas sin leer</h5>
                     <small class="text-muted">Rol actual: @rol</small>
                 </div>
             </div>
             <hr />
-            <div class="small text-muted">
+            <form method="get" class="vstack gap-3">
+                <div>
+                    <label class="form-label fw-semibold small">Tipo</label>
+                    <select name="tipo" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        @foreach (var tipo in tipos)
+                        {
+                            <option value="@tipo" selected="@(Model.Tipo == tipo)">@tipo</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label fw-semibold small">Prioridad</label>
+                    <select name="prioridad" class="form-select form-select-sm">
+                        <option value="">Todas</option>
+                        @foreach (var prioridad in prioridades)
+                        {
+                            <option value="@prioridad" selected="@(Model.Prioridad == prioridad)">@prioridad</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label fw-semibold small">Estado</label>
+                    <select name="estado" class="form-select form-select-sm">
+                        <option value="">Todas</option>
+                        <option value="no-leidas" selected="@(Model.Estado == "no-leidas")">No leidas</option>
+                        <option value="leidas" selected="@(Model.Estado == "leidas")">Leidas</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary btn-sm" type="submit">
+                    <i class="bi bi-funnel me-1"></i>Filtrar
+                </button>
+            </form>
+        </div>
+
+        <div class="card surface-card p-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="metric-icon metric-success">
+                    <i class="bi bi-broadcast"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">En vivo</h5>
+                    <small class="text-muted">Eventos recibidos en esta sesion</small>
+                </div>
+            </div>
+            <div class="small text-muted mt-3">
                 <div class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Nuevos pedidos</div>
                 <div class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Cambios de estado</div>
                 <div><i class="bi bi-check-circle text-success me-2"></i>Actualizacion de mesas</div>
             </div>
         </div>
     </div>
+
     <div class="col-lg-8">
+        <div class="card p-0 mb-4">
+            <div class="card-header bg-transparent px-3 py-3 d-flex align-items-center">
+                <span class="fw-bold">Historial reciente</span>
+                <span class="badge bg-warning text-dark ms-auto">@Model.Notificaciones.Count</span>
+            </div>
+            <div class="list-group list-group-flush">
+                @if (!Model.Notificaciones.Any())
+                {
+                    <div class="empty-state">
+                        <i class="bi bi-bell-slash"></i>
+                        <span>No hay notificaciones con estos filtros.</span>
+                    </div>
+                }
+                @foreach (var n in Model.Notificaciones)
+                {
+                    var prioridadClass = n.Prioridad switch
+                    {
+                        PrioridadNotificacion.Urgente => "danger",
+                        PrioridadNotificacion.Importante => "warning",
+                        _ => "secondary"
+                    };
+                    <div class="list-group-item d-flex align-items-start gap-3 py-3 @(n.Leida ? "" : "bg-light")">
+                        <div class="metric-icon metric-@prioridadClass" style="width:38px;height:38px;font-size:1rem">
+                            <i class="bi @(n.Tipo == TiposNotificacion.Pedido ? "bi-receipt-cutoff" : n.Tipo == TiposNotificacion.Mesa ? "bi-grid-3x3-gap" : "bi-info-circle")"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <span class="fw-semibold">@n.Titulo</span>
+                                @if (!n.Leida)
+                                {
+                                    <span class="badge bg-primary">Nuevo</span>
+                                }
+                                <span class="badge bg-@prioridadClass">@n.Prioridad</span>
+                            </div>
+                            <div class="small text-muted">@n.Mensaje</div>
+                            <small class="text-muted">@n.FechaCreacion.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</small>
+                        </div>
+                        <div class="d-flex gap-1">
+                            @if (!string.IsNullOrWhiteSpace(n.EnlaceRelacionado))
+                            {
+                                <form asp-action="Abrir" asp-route-id="@n.Id" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-sm btn-outline-primary" type="submit" title="Abrir">
+                                        <i class="bi bi-box-arrow-up-right"></i>
+                                    </button>
+                                </form>
+                            }
+                            @if (!n.Leida)
+                            {
+                                <form asp-action="MarcarLeida" asp-route-id="@n.Id" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-sm btn-outline-secondary" type="submit" title="Marcar leida">
+                                        <i class="bi bi-check2"></i>
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
         <div class="card p-0">
             <div class="card-header bg-transparent px-3 py-3 d-flex align-items-center">
                 <span class="fw-bold">Eventos del turno</span>
@@ -57,9 +172,8 @@
     const contador = document.getElementById('contadorEventos');
     const empty = document.getElementById('emptyEventos');
 
-    function agregarEvento(tipo, titulo, mensaje, icono, color = 'warning') {
+    function agregarEvento(titulo, mensaje, icono, color = 'warning') {
         eventos.unshift({
-            tipo,
             titulo,
             mensaje,
             icono,
@@ -72,7 +186,6 @@
     function renderEventos() {
         contador.textContent = eventos.length;
         empty.classList.toggle('d-none', eventos.length > 0);
-
         contenedor.querySelectorAll('.evento-item').forEach(e => e.remove());
 
         eventos.slice(0, 30).forEach(e => {
@@ -91,11 +204,6 @@
         });
     }
 
-    function limpiarEventos() {
-        eventos.length = 0;
-        renderEventos();
-    }
-
     const conn = new signalR.HubConnectionBuilder()
         .withUrl('/hubs/pedidos')
         .withAutomaticReconnect()
@@ -103,7 +211,6 @@
 
     conn.on('NuevoPedido', pedido => {
         agregarEvento(
-            'pedido',
             `Nuevo pedido #${pedido.id}`,
             `Mesa ${pedido.mesaNumero} enviada a cocina por ${pedido.usuarioNombre}.`,
             'bi-receipt-cutoff',
@@ -113,7 +220,6 @@
 
     conn.on('EstadoPedidoActualizado', data => {
         agregarEvento(
-            'estado',
             `Pedido #${data.pedidoId} actualizado`,
             `Nuevo estado: ${data.nuevoEstado}.`,
             'bi-arrow-repeat',
@@ -123,7 +229,6 @@
 
     conn.on('EstadoMesaActualizado', data => {
         agregarEvento(
-            'mesa',
             `Mesa #${data.mesaId} actualizada`,
             `Nuevo estado: ${data.nuevoEstado}.`,
             'bi-grid-3x3-gap',
@@ -134,7 +239,7 @@
     conn.start()
         .then(() => {
             if (rolActual) conn.invoke('UnirseAGrupo', rolActual);
-            agregarEvento('sistema', 'Centro conectado', 'Las notificaciones en vivo estan activas.', 'bi-wifi', 'success');
+            agregarEvento('Centro conectado', 'Las notificaciones en vivo estan activas.', 'bi-wifi', 'success');
         })
         .catch(e => console.error('SignalR:', e));
 </script>

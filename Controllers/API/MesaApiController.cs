@@ -1,5 +1,6 @@
 using AppWebSistemaComandasDigital.Dtos;
 using AppWebSistemaComandasDigital.Helpers;
+using AppWebSistemaComandasDigital.Models;
 using AppWebSistemaComandasDigital.RealTime;
 using AppWebSistemaComandasDigital.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +12,7 @@ namespace AppWebSistemaComandasDigital.Controllers.API
     [Route("api/mesas")]
     public class MesaApiController(
         MesaService            mesaService,
+        NotificacionService    notificacionService,
         IHubContext<PedidoHub> hub) : ControllerBase
     {
         [HttpGet]
@@ -39,6 +41,14 @@ namespace AppWebSistemaComandasDigital.Controllers.API
             var (exitoso, mensaje, data) = await mesaService.CreateAsync(dto);
             if (!exitoso) return Conflict(ResponseHelper.Error<object>(mensaje));
 
+            await notificacionService.CrearParaRolesAsync(
+                ["Admin"],
+                TiposNotificacion.Mesa,
+                $"Mesa {data!.Numero} creada",
+                $"Mesa creada con capacidad para {data.Capacidad} personas.",
+                PrioridadNotificacion.Normal,
+                "/Admin/MesaAdmin");
+
             await PedidoHubNotificaciones.MesaActualizada(hub, data!.Id, data.Estado);
             return CreatedAtAction(nameof(GetById), new { id = data.Id },
                 ResponseHelper.Creado(data, mensaje));
@@ -52,6 +62,14 @@ namespace AppWebSistemaComandasDigital.Controllers.API
 
             var (exitoso, mensaje, data) = await mesaService.UpdateAsync(id, dto);
             if (!exitoso) return NotFound(ResponseHelper.Error<object>(mensaje));
+
+            await notificacionService.CrearParaRolesAsync(
+                ["Admin"],
+                TiposNotificacion.Mesa,
+                $"Mesa {data!.Numero} actualizada",
+                $"Nuevo estado: {data.Estado}. Capacidad: {data.Capacidad}.",
+                PrioridadNotificacion.Normal,
+                "/Admin/MesaAdmin");
 
             await PedidoHubNotificaciones.MesaActualizada(hub, id, data!.Estado);
             return Ok(ResponseHelper.Ok(data, mensaje));

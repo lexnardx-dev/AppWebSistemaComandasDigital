@@ -1,11 +1,14 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AppWebSistemaComandasDigital.Dtos
+namespace AppWebSistemaComandasDigital.Models
 {
-    public class ConfiguracionRestauranteDTO
+    [Table("ConfiguracionRestaurante")]
+    public class ConfiguracionRestaurante
     {
-        [Required(ErrorMessage = "El nombre del restaurante es obligatorio.")]
-        [MaxLength(120)]
+        public int Id { get; set; }
+
+        [Required, MaxLength(120)]
         public string NombreRestaurante { get; set; } = "Comandas Digital";
 
         [MaxLength(20)]
@@ -17,11 +20,10 @@ namespace AppWebSistemaComandasDigital.Dtos
         [MaxLength(30)]
         public string? Telefono { get; set; }
 
-        [Required]
-        [MaxLength(8)]
+        [Required, MaxLength(8)]
         public string Moneda { get; set; } = "S/";
 
-        [Range(0, 30, ErrorMessage = "El IGV debe estar entre 0 y 30.")]
+        [Column(TypeName = "decimal(5,2)")]
         public decimal IgvPorcentaje { get; set; } = 18m;
 
         [MaxLength(120)]
@@ -30,10 +32,9 @@ namespace AppWebSistemaComandasDigital.Dtos
         [MaxLength(500)]
         public string? LogoUrl { get; set; }
 
-        public IFormFile? LogoArchivo { get; set; }
-
-        [Required]
-        [RegularExpression("^#[0-9A-Fa-f]{6}$", ErrorMessage = "Usa un color hexadecimal valido. Ej: #F6B700.")]
+        [Required, MaxLength(7)]
         public string ColorMarca { get; set; } = "#F6B700";
+
+        public DateTime FechaActualizacion { get; set; } = DateTime.UtcNow;
     }
 }

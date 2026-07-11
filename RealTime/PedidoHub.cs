@@ -36,7 +36,7 @@ namespace AppWebSistemaComandasDigital.RealTime
             IHubContext<PedidoHub> hub, int pedidoId, string nuevoEstado)
         {
             await hub.Clients.All
-                .SendAsync("EstadoPedidoActualizado", pedidoId, nuevoEstado);
+                .SendAsync("EstadoPedidoActualizado", new { pedidoId, nuevoEstado });
         }
 
         public static async Task MesaActualizada(

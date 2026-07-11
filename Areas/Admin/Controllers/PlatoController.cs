@@ -1,14 +1,20 @@
 using AppWebSistemaComandasDigital.Dtos;
 using AppWebSistemaComandasDigital.Services;
+using AppWebSistemaComandasDigital.Options;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Options;
 
 namespace AppWebSistemaComandasDigital.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Authorize(Policy = "SoloAdmin")]
-    public class PlatoController(PlatoService platoService, CategoriaService categoriaService) : Controller
+    public class PlatoController(
+        PlatoService platoService,
+        CategoriaService categoriaService,
+        ISupabaseStorageService storage,
+        IOptions<SupabaseStorageOptions> storageOptions) : Controller
     {
         private async Task CargarCategoriasAsync()
         {
@@ -33,6 +39,12 @@ namespace AppWebSistemaComandasDigital.Areas.Admin.Controllers
         public async Task<IActionResult> Crear(PlatoCreateDTO dto)
         {
             if (!ModelState.IsValid)
+            {
+                await CargarCategoriasAsync();
+                return View(dto);
+            }
+
+            if (!await ProcesarImagenAsync(dto))
             {
                 await CargarCategoriasAsync();
                 return View(dto);
@@ -74,6 +86,13 @@ namespace AppWebSistemaComandasDigital.Areas.Admin.Controllers
         public async Task<IActionResult> Editar(int id, PlatoUpdateDTO dto)
         {
             if (!ModelState.IsValid)
+            {
+                await CargarCategoriasAsync();
+                ViewBag.PlatoId = id;
+                return View(dto);
+            }
+
+            if (!await ProcesarImagenAsync(dto))
             {
                 await CargarCategoriasAsync();
                 ViewBag.PlatoId = id;
@@ -128,6 +147,23 @@ namespace AppWebSistemaComandasDigital.Areas.Admin.Controllers
             var (exitoso, mensaje) = await platoService.ForceDeleteAsync(id);
             TempData[exitoso ? "Exito" : "Error"] = mensaje;
             return RedirectToAction(nameof(Index));
+        }
+
+        private async Task<bool> ProcesarImagenAsync(PlatoCreateDTO dto)
+        {
+            if (dto.ImagenArchivo is null) return true;
+
+            try
+            {
+                dto.ImagenUrl = await storage.SubirImagenAsync(
+                    dto.ImagenArchivo, storageOptions.Value.Buckets.Platos, HttpContext.RequestAborted);
+                return true;
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError(nameof(dto.ImagenArchivo), ex.Message);
+                return false;
+            }
         }
     }
 }

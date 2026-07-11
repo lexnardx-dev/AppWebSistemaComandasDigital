@@ -17,7 +17,7 @@
 <div class="row justify-content-center">
     <div class="col-md-7">
         <div class="card p-4">
-            <form asp-action="Crear" method="post">
+            <form asp-action="Crear" method="post" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
 
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger small py-2 mb-3"></div>
@@ -68,6 +68,13 @@
                     <span asp-validation-for="ImagenUrl" class="text-danger small"></span>
                 </div>
 
+                <div class="mb-3">
+                    <label asp-for="ImagenArchivo" class="form-label fw-semibold small">Subir imagen</label>
+                    <input asp-for="ImagenArchivo" type="file" accept="image/png,image/jpeg,image/webp" class="form-control" />
+                    <div class="form-text">JPG, PNG o WebP. Maximo 5 MB.</div>
+                    <span asp-validation-for="ImagenArchivo" class="text-danger small"></span>
+                </div>
+
                 <!-- Preview imagen -->
                 <div id="previewContainer" class="mb-3 d-none">
                     <p class="form-label fw-semibold small mb-1">Vista previa</p>
@@ -100,6 +107,7 @@
     <script>
         // Preview de imagen en tiempo real
         const urlInput = document.querySelector('input[name="ImagenUrl"]');
+        const fileInput = document.querySelector('input[name="ImagenArchivo"]');
         const preview  = document.getElementById('previewContainer');
         const img      = document.getElementById('previewImg');
 
@@ -112,6 +120,13 @@
             } else {
                 preview.classList.add('d-none');
             }
+        });
+
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files?.[0];
+            if (!file) return;
+            img.src = URL.createObjectURL(file);
+            preview.classList.remove('d-none');
         });
     </script>
 }

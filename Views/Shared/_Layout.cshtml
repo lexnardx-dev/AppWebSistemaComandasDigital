@@ -1,3 +1,4 @@
+@inject AppWebSistemaComandasDigital.Services.NotificacionService NotificacionService
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -19,6 +20,10 @@
     var rolActual   = User.FindFirst("rol_nombre")?.Value ?? "";
     var isAdmin     = User.HasClaim("rol_nombre", "Admin");
     var isCocina    = User.HasClaim("rol_nombre", "Cocina");
+    var usuarioIdClaim = User.FindFirst("usuario_id")?.Value;
+    var notificacionesNoLeidas = int.TryParse(usuarioIdClaim, out var usuarioId)
+        ? await NotificacionService.ContarNoLeidasAsync(usuarioId)
+        : 0;
 }
 
 <!-- ==========================================================
@@ -67,6 +72,22 @@
            class="sc-nav-item @(ctrl == "Mesa" ? "active" : "")">
             <div class="sc-nav-icon"><i class="bi bi-grid-3x3-gap"></i></div>
             <span>Mesas</span>
+        </a>
+
+        <a asp-area="" asp-controller="Notificaciones" asp-action="Index"
+           class="sc-nav-item @(ctrl == "Notificaciones" ? "active" : "")">
+            <div class="sc-nav-icon"><i class="bi bi-bell"></i></div>
+            <span>Notificaciones</span>
+            @if (notificacionesNoLeidas > 0)
+            {
+                <span class="badge bg-warning text-dark ms-auto" style="font-size:.68rem">@notificacionesNoLeidas</span>
+            }
+        </a>
+
+        <a asp-area="" asp-controller="Perfil" asp-action="Index"
+           class="sc-nav-item @(ctrl == "Perfil" ? "active" : "")">
+            <div class="sc-nav-icon"><i class="bi bi-person-gear"></i></div>
+            <span>Perfil</span>
         </a>
 
         <!-- -- OPERACIONES ------------------------------------- -->
@@ -140,17 +161,6 @@
                 <span>Configuración</span>
             </a>
 
-            <a asp-area="" asp-controller="Perfil" asp-action="Index"
-               class="sc-nav-item @(ctrl == "Perfil" ? "active" : "")">
-                <div class="sc-nav-icon"><i class="bi bi-person-gear"></i></div>
-                <span>Perfil</span>
-            </a>
-
-            <a asp-area="" asp-controller="Notificaciones" asp-action="Index"
-               class="sc-nav-item @(ctrl == "Notificaciones" ? "active" : "")">
-                <div class="sc-nav-icon"><i class="bi bi-bell"></i></div>
-                <span>Notificaciones</span>
-            </a>
         }
 
     </nav>

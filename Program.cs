@@ -4,6 +4,7 @@ using AppWebSistemaComandasDigital.Middlewares;
 using AppWebSistemaComandasDigital.RealTime;
 using AppWebSistemaComandasDigital.Repositories;
 using AppWebSistemaComandasDigital.Services;
+using AppWebSistemaComandasDigital.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -15,17 +16,6 @@ var builder = WebApplication.CreateBuilder(args);
 // ── Base de datos ─────────────────────────────────────────────────────
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-
-Console.WriteLine("================================");
-Console.WriteLine(connectionString);
-
-var builderNpgsql = new Npgsql.NpgsqlConnectionStringBuilder(connectionString);
-
-Console.WriteLine(builderNpgsql.Host);
-Console.WriteLine(builderNpgsql.Database);
-Console.WriteLine(builderNpgsql.Username);
-
-Console.WriteLine("================================");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString, npgsql =>
@@ -98,6 +88,10 @@ builder.Services.AddScoped<PedidoService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<CategoriaService>();
 builder.Services.AddScoped<ConfiguracionRestauranteService>();
+builder.Services.AddScoped<NotificacionService>();
+builder.Services.Configure<SupabaseStorageOptions>(
+    builder.Configuration.GetSection(SupabaseStorageOptions.SectionName));
+builder.Services.AddHttpClient<ISupabaseStorageService, SupabaseStorageService>();
 
 // ── Helpers ───────────────────────────────────────────────────────────
 builder.Services.AddScoped<JwtHelper>();

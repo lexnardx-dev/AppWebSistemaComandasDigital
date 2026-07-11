@@ -13,6 +13,8 @@ namespace AppWebSistemaComandasDigital.Data
         public DbSet<Plato>         Platos         { get; set; }
         public DbSet<Pedido>        Pedidos        { get; set; }
         public DbSet<DetallePedido> DetallesPedido { get; set; }
+        public DbSet<ConfiguracionRestaurante> ConfiguracionRestaurante { get; set; }
+        public DbSet<Notificacion> Notificaciones { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -27,6 +29,21 @@ namespace AppWebSistemaComandasDigital.Data
                  .WithMany(r => r.Usuarios)
                  .HasForeignKey(u => u.RolId)
                  .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<ConfiguracionRestaurante>(e =>
+            {
+                e.Property(c => c.IgvPorcentaje).HasColumnType("decimal(5,2)");
+            });
+
+            modelBuilder.Entity<Notificacion>(e =>
+            {
+                e.Property(n => n.Prioridad).HasConversion<string>();
+                e.HasIndex(n => new { n.UsuarioDestinoId, n.Leida, n.FechaCreacion });
+                e.HasOne(n => n.UsuarioDestino)
+                    .WithMany(u => u.Notificaciones)
+                    .HasForeignKey(n => n.UsuarioDestinoId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Mesa>(e =>

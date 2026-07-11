@@ -13,6 +13,7 @@ namespace AppWebSistemaComandasDigital.Controllers.API
     [Route("api/pedidos")]
     public class PedidoApiController(
         PedidoService          pedidoService,
+        NotificacionService    notificacionService,
         IHubContext<PedidoHub> hub) : ControllerBase
     {
         [HttpGet]
@@ -54,6 +55,14 @@ namespace AppWebSistemaComandasDigital.Controllers.API
             var (exitoso, mensaje, data) = await pedidoService.CreateAsync(dto, usuarioId);
             if (!exitoso) return BadRequest(ResponseHelper.Error<object>(mensaje));
 
+            await notificacionService.CrearParaRolesAsync(
+                ["Admin", "Cocina"],
+                TiposNotificacion.Pedido,
+                $"Nuevo pedido #{data!.Id}",
+                $"Mesa {data.MesaNumero} enviada a cocina por {data.UsuarioNombre}.",
+                PrioridadNotificacion.Urgente,
+                $"/Pedido/Detalle/{data.Id}");
+
             await PedidoHubNotificaciones.NuevoPedido(hub, data!);
 
             return CreatedAtAction(nameof(GetById), new { id = data!.Id },
@@ -73,6 +82,17 @@ namespace AppWebSistemaComandasDigital.Controllers.API
 
             var (exitoso, mensaje) = await pedidoService.UpdateEstadoAsync(id, dto);
             if (!exitoso) return NotFound(ResponseHelper.Error<object>(mensaje));
+
+            var pedido = await pedidoService.GetByIdAsync(id);
+            await notificacionService.CrearParaRolesAsync(
+                ["Admin", "Cocina"],
+                TiposNotificacion.EstadoPedido,
+                $"Pedido #{id} actualizado",
+                pedido is null
+                    ? $"Nuevo estado: {dto.Estado}."
+                    : $"Mesa {pedido.MesaNumero} ahora esta en estado {dto.Estado}.",
+                dto.EstadoEnum is EstadoPedido.Cancelado ? PrioridadNotificacion.Importante : PrioridadNotificacion.Normal,
+                $"/Pedido/Detalle/{id}");
 
             await PedidoHubNotificaciones.EstadoActualizado(hub, id, dto.Estado);
 

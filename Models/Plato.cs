@@ -18,7 +18,7 @@ namespace AppWebSistemaComandasDigital.Models
 
         public bool Disponible { get; set; } = true;
 
-        [MaxLength(250)]
+        [MaxLength(500)]
         public string? ImagenUrl { get; set; }
 
         // FK
