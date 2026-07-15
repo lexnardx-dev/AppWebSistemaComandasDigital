@@ -89,6 +89,8 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<CategoriaService>();
 builder.Services.AddScoped<ConfiguracionRestauranteService>();
 builder.Services.AddScoped<NotificacionService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<UsuarioActualService>();
 builder.Services.Configure<SupabaseStorageOptions>(
     builder.Configuration.GetSection(SupabaseStorageOptions.SectionName));
 builder.Services.AddHttpClient<ISupabaseStorageService, SupabaseStorageService>();

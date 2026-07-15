@@ -32,9 +32,6 @@ namespace AppWebSistemaComandasDigital.Models
         [MaxLength(500)]
         public string? LogoUrl { get; set; }
 
-        [Required, MaxLength(7)]
-        public string ColorMarca { get; set; } = "#F6B700";
-
         public DateTime FechaActualizacion { get; set; } = DateTime.UtcNow;
     }
 }

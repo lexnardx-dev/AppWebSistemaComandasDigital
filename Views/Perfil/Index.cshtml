@@ -17,7 +17,8 @@
             <div class="profile-avatar-wrap">
                 @if (!string.IsNullOrWhiteSpace(Model.Usuario.ImagenUrl))
                 {
-                    <img src="@Model.Usuario.ImagenUrl" alt="Avatar de @Model.Usuario.Nombre" class="profile-avatar-img" />
+                    <img src="@Model.Usuario.ImagenUrl" alt="Avatar de @Model.Usuario.Nombre" class="profile-avatar-img" onerror="this.classList.add('d-none');this.nextElementSibling.classList.remove('d-none');" />
+                    <div class="profile-avatar-fallback d-none">@inicial</div>
                 }
                 else
                 {
@@ -41,7 +42,7 @@
                 <strong>@Model.Usuario.Email</strong>
             </div>
             <div>
-                <span>Creacion</span>
+                <span>Creación</span>
                 <strong>@Model.Usuario.FechaCreacion.ToString("dd/MM/yyyy")</strong>
             </div>
             <div>
@@ -72,12 +73,13 @@
                 <div class="col-md-6">
                     <label asp-for="Editar.ImagenUrl" class="form-label fw-semibold small">URL de imagen</label>
                     <input asp-for="Editar.ImagenUrl" class="form-control" placeholder="https://..." id="perfilImagenUrl" />
+                    <div class="form-text">Usa una URL directa y pública de imagen.</div>
                     <span asp-validation-for="Editar.ImagenUrl" class="text-danger small"></span>
                 </div>
                 <div class="col-md-8">
                     <label asp-for="Editar.ImagenArchivo" class="form-label fw-semibold small">Subir imagen</label>
                     <input asp-for="Editar.ImagenArchivo" type="file" accept="image/png,image/jpeg,image/webp" class="form-control" id="perfilImagenArchivo" />
-                    <div class="form-text">JPG, PNG o WebP. Maximo 5 MB.</div>
+                    <div class="form-text">JPG, PNG o WebP. Máximo 5 MB. El bucket de Supabase debe ser público.</div>
                     <span asp-validation-for="Editar.ImagenArchivo" class="text-danger small"></span>
                 </div>
                 <div class="col-md-4 d-flex align-items-end">
@@ -92,8 +94,8 @@
     <section class="card profile-panel profile-security-panel">
         <div class="profile-panel-header">
             <div>
-                <h5><i class="bi bi-shield-lock text-secondary me-2"></i>Cambiar contrasena</h5>
-                <p>Usa minimo 10 caracteres con mayuscula, minuscula, numero y simbolo.</p>
+                <h5><i class="bi bi-shield-lock text-secondary me-2"></i>Cambiar contraseña</h5>
+                <p>Usa mínimo 10 caracteres con mayúscula, minúscula, número y símbolo.</p>
             </div>
         </div>
 
@@ -103,30 +105,30 @@
 
             <div class="row g-3">
                 <div class="col-md-4">
-                    <label asp-for="Password.PasswordActual" class="form-label fw-semibold small">Contrasena actual</label>
+                    <label asp-for="Password.PasswordActual" class="form-label fw-semibold small">Contraseña actual</label>
                     <div class="input-group password-field">
                         <input asp-for="Password.PasswordActual" type="password" class="form-control" autocomplete="current-password" />
-                        <button class="btn btn-outline-secondary password-toggle" type="button" title="Mostrar contrasena" aria-label="Mostrar contrasena">
+                        <button class="btn btn-outline-secondary password-toggle" type="button" title="Mostrar contraseña" aria-label="Mostrar contraseña">
                             <i class="bi bi-eye"></i>
                         </button>
                     </div>
                     <span asp-validation-for="Password.PasswordActual" class="text-danger small"></span>
                 </div>
                 <div class="col-md-4">
-                    <label asp-for="Password.NuevaPassword" class="form-label fw-semibold small">Nueva contrasena</label>
+                    <label asp-for="Password.NuevaPassword" class="form-label fw-semibold small">Nueva contraseña</label>
                     <div class="input-group password-field">
                         <input asp-for="Password.NuevaPassword" type="password" class="form-control" autocomplete="new-password" id="nuevaPassword" />
-                        <button class="btn btn-outline-secondary password-toggle" type="button" title="Mostrar contrasena" aria-label="Mostrar contrasena">
+                        <button class="btn btn-outline-secondary password-toggle" type="button" title="Mostrar contraseña" aria-label="Mostrar contraseña">
                             <i class="bi bi-eye"></i>
                         </button>
                     </div>
                     <span asp-validation-for="Password.NuevaPassword" class="text-danger small"></span>
                 </div>
                 <div class="col-md-4">
-                    <label asp-for="Password.ConfirmarPassword" class="form-label fw-semibold small">Confirmar contrasena</label>
+                    <label asp-for="Password.ConfirmarPassword" class="form-label fw-semibold small">Confirmar contraseña</label>
                     <div class="input-group password-field">
                         <input asp-for="Password.ConfirmarPassword" type="password" class="form-control" autocomplete="new-password" />
-                        <button class="btn btn-outline-secondary password-toggle" type="button" title="Mostrar contrasena" aria-label="Mostrar contrasena">
+                        <button class="btn btn-outline-secondary password-toggle" type="button" title="Mostrar contraseña" aria-label="Mostrar contraseña">
                             <i class="bi bi-eye"></i>
                         </button>
                     </div>
@@ -136,11 +138,11 @@
 
             <div class="password-strength" aria-live="polite">
                 <div class="password-strength-bar"><span id="passwordStrengthBar"></span></div>
-                <small id="passwordStrengthText">Seguridad de contrasena pendiente.</small>
+                <small id="passwordStrengthText">Seguridad de contraseña pendiente.</small>
             </div>
 
             <button class="btn btn-primary" type="submit">
-                <i class="bi bi-check2 me-1"></i>Actualizar contrasena
+                <i class="bi bi-check2 me-1"></i>Actualizar contraseña
             </button>
         </form>
     </section>
@@ -154,7 +156,7 @@
                 const input = button.closest('.password-field').querySelector('input');
                 const visible = input.type === 'text';
                 input.type = visible ? 'password' : 'text';
-                button.title = visible ? 'Mostrar contrasena' : 'Ocultar contrasena';
+                button.title = visible ? 'Mostrar contraseña' : 'Ocultar contraseña';
                 button.setAttribute('aria-label', button.title);
                 button.querySelector('i').className = visible ? 'bi bi-eye' : 'bi bi-eye-slash';
             });
@@ -180,10 +182,10 @@
             strengthBar.style.width = `${percent}%`;
             strengthBar.className = score >= 5 ? 'strong' : score >= 3 ? 'medium' : 'weak';
             strengthText.textContent = score >= 5
-                ? 'Contrasena fuerte.'
+                ? 'Contraseña fuerte.'
                 : score >= 3
-                    ? 'Contrasena media. Agrega mas variedad.'
-                    : 'Contrasena debil. Usa longitud, mayuscula, numero y simbolo.';
+                    ? 'Contraseña media. Agrega más variedad.'
+                    : 'Contraseña débil. Usa longitud, mayúscula, número y símbolo.';
         });
     </script>
 }

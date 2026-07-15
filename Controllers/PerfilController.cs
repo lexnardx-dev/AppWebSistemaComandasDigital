@@ -43,7 +43,7 @@ namespace AppWebSistemaComandasDigital.Controllers
                 }
                 catch (InvalidOperationException ex)
                 {
-                    ModelState.AddModelError(nameof(model.ImagenArchivo), ex.Message);
+                    ModelState.AddModelError("Editar.ImagenArchivo", ex.Message);
                     return View(nameof(Index), CrearVista(usuario, model));
                 }
             }

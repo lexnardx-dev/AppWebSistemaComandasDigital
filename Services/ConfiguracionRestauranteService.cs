@@ -33,7 +33,6 @@ namespace AppWebSistemaComandasDigital.Services
             configuracion.IgvPorcentaje = dto.IgvPorcentaje;
             configuracion.HorarioAtencion = dto.HorarioAtencion?.Trim();
             configuracion.LogoUrl = dto.LogoUrl?.Trim();
-            configuracion.ColorMarca = dto.ColorMarca.Trim();
             configuracion.FechaActualizacion = DateTime.UtcNow;
 
             await db.SaveChangesAsync();
@@ -49,7 +48,6 @@ namespace AppWebSistemaComandasDigital.Services
             IgvPorcentaje = c.IgvPorcentaje,
             HorarioAtencion = c.HorarioAtencion,
             LogoUrl = c.LogoUrl,
-            ColorMarca = c.ColorMarca,
             FechaActualizacion = c.FechaActualizacion
         };
     }

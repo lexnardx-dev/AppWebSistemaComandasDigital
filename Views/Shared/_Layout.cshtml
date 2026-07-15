@@ -1,5 +1,6 @@
 @inject AppWebSistemaComandasDigital.Services.NotificacionService NotificacionService
 @inject AppWebSistemaComandasDigital.Services.ConfiguracionRestauranteService ConfiguracionService
+@inject AppWebSistemaComandasDigital.Services.UsuarioActualService UsuarioActualService
 @functions {
     private static string ConVersion(string? url, DateTime version)
     {
@@ -31,9 +32,11 @@
     var ctrl        = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
     var action      = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
     var area        = ViewContext.RouteData.Values["area"]?.ToString() ?? "";
-    var userName    = User.Identity?.Name ?? "Usuario";
-    var userInitial = userName.Length > 0 ? userName[0].ToString().ToUpper() : "U";
-    var rolActual   = User.FindFirst("rol_nombre")?.Value ?? "";
+    var usuarioActual = await UsuarioActualService.ObtenerAsync();
+    var userName    = usuarioActual?.Nombre ?? User.Identity?.Name ?? "Usuario";
+    var userInitial = usuarioActual?.Inicial ?? (userName.Length > 0 ? userName[0].ToString().ToUpper() : "U");
+    var rolActual   = usuarioActual?.Rol ?? User.FindFirst("rol_nombre")?.Value ?? "";
+    var userImageUrl = usuarioActual?.ImagenUrl;
     var isAdmin     = User.HasClaim("rol_nombre", "Admin");
     var isCocina    = User.HasClaim("rol_nombre", "Cocina");
     var usuarioIdClaim = User.FindFirst("usuario_id")?.Value;
@@ -80,7 +83,7 @@
         </a>
 
         <div class="sc-nav-section">
-            <div class="sc-nav-label">Operacion</div>
+            <div class="sc-nav-label">Operación</div>
         </div>
 
         <a asp-area="" asp-controller="Pedido" asp-action="Index"
@@ -186,7 +189,17 @@
     <div class="sc-sidebar-footer">
 
         <div class="sc-user-info">
-            <div class="sc-user-avatar">@userInitial</div>
+            <div class="sc-user-avatar" aria-hidden="true">
+                @if (!string.IsNullOrWhiteSpace(userImageUrl))
+                {
+                    <img src="@userImageUrl" alt="" class="sc-user-avatar-img" loading="lazy" onerror="this.classList.add('d-none');this.nextElementSibling.classList.remove('d-none');" />
+                    <span class="d-none">@userInitial</span>
+                }
+                else
+                {
+                    @userInitial
+                }
+            </div>
             <div class="sc-user-details">
                 <div class="sc-user-name">@userName</div>
                 <div class="sc-user-role">@rolActual</div>
@@ -224,7 +237,17 @@
         <div class="sc-topbar-right">
             <span class="sc-clock" id="reloj"></span>
             <div class="sc-user-badge">
-                <div class="sc-topbar-avatar">@userInitial</div>
+                <div class="sc-topbar-avatar" aria-hidden="true">
+                    @if (!string.IsNullOrWhiteSpace(userImageUrl))
+                    {
+                        <img src="@userImageUrl" alt="" class="sc-topbar-avatar-img" loading="lazy" onerror="this.classList.add('d-none');this.nextElementSibling.classList.remove('d-none');" />
+                        <span class="d-none">@userInitial</span>
+                    }
+                    else
+                    {
+                        @userInitial
+                    }
+                </div>
                 <span>@userName</span>
                 <span class="badge bg-warning text-dark ms-1" style="font-size:.68rem">@rolActual</span>
             </div>

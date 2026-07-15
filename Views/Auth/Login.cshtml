@@ -504,7 +504,7 @@
             </div>
             <div class="brand-name">
                 Comandas Digital
-                <span>Operacion de sala y cocina</span>
+                <span>Operación de sala y cocina</span>
             </div>
         </div>
 
@@ -512,7 +512,7 @@
             <div class="story-kicker">Sistema POS para restaurantes</div>
             <h1 class="story-title">Pedidos claros durante todo el turno.</h1>
             <p class="story-copy">
-                Coordina mesas, cocina y administracion con una vista operativa hecha para trabajar rapido, sin ruido visual.
+                Coordina mesas, cocina y administración con una vista operativa hecha para trabajar rápido, sin ruido visual.
             </p>
 
             <div class="operation-preview">
@@ -529,7 +529,7 @@
                             <span>2</span>
                             <div>
                                 Lomo saltado
-                                <small class="d-block">Sin cebolla, termino medio</small>
+                                <small class="d-block">Sin cebolla, término medio</small>
                             </div>
                             <strong>S/ 36.00</strong>
                         </div>
@@ -544,7 +544,7 @@
                         <div class="ticket-item">
                             <span>1</span>
                             <div>
-                                Causa limena
+                                Causa limeña
                                 <small class="d-block">Entrada</small>
                             </div>
                             <strong>S/ 14.50</strong>
@@ -591,8 +591,8 @@
 
         <div class="brand-foot">
             <span><i class="bi bi-lightning-charge-fill"></i> Tiempo real</span>
-            <span><i class="bi bi-phone"></i> App movil para mozos</span>
-            <span><i class="bi bi-person-badge"></i> Roles por operacion</span>
+            <span><i class="bi bi-phone"></i> App móvil para mozos</span>
+            <span><i class="bi bi-person-badge"></i> Roles por operación</span>
         </div>
     </section>
 
@@ -604,7 +604,7 @@
                 </div>
                 <div class="brand-name" style="color:#172033">
                     Comandas Digital
-                    <span style="color:#64748b">Operacion de sala y cocina</span>
+                    <span style="color:#64748b">Operación de sala y cocina</span>
                 </div>
             </div>
 
@@ -612,7 +612,7 @@
             {
                 <div class="setup-badge">
                     <i class="bi bi-stars"></i>
-                    Primera configuracion
+                    Primera configuración
                 </div>
                 <div class="form-kicker">Cuenta principal</div>
                 <h2 class="auth-title">Crea el administrador del sistema</h2>
@@ -635,7 +635,7 @@
 
                 <div class="auth-alert auth-alert-warning">
                     <i class="bi bi-exclamation-triangle"></i>
-                    <span>Guarda estos datos. Esta cuenta tendra control total del sistema.</span>
+                    <span>Guarda estos datos. Esta cuenta tendrá control total del sistema.</span>
                 </div>
 
                 <form asp-action="Registro" asp-controller="Auth" method="post">
@@ -647,15 +647,15 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label" for="setupEmail">Correo electronico</label>
+                        <label class="form-label" for="setupEmail">Correo electrónico</label>
                         <input name="Email" id="setupEmail" type="email" class="form-control" placeholder="admin@restaurante.com" autocomplete="email" required />
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label" for="setupPass">Contrasena</label>
+                        <label class="form-label" for="setupPass">Contraseña</label>
                         <div class="password-field">
-                            <input name="Password" id="setupPass" type="password" class="form-control" placeholder="Minimo 8 caracteres" minlength="8" autocomplete="new-password" required />
-                            <button type="button" class="password-toggle" onclick="togglePassword('setupPass','setupPassIcon')" aria-label="Mostrar u ocultar contrasena">
+                            <input name="Password" id="setupPass" type="password" class="form-control" placeholder="Mínimo 8 caracteres" minlength="8" autocomplete="new-password" required />
+                            <button type="button" class="password-toggle" onclick="togglePassword('setupPass','setupPassIcon')" aria-label="Mostrar u ocultar contraseña">
                                 <i class="bi bi-eye" id="setupPassIcon"></i>
                             </button>
                         </div>
@@ -663,10 +663,10 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label" for="setupPass2">Confirmar contrasena</label>
+                        <label class="form-label" for="setupPass2">Confirmar contraseña</label>
                         <div class="password-field">
-                            <input name="ConfirmarPassword" id="setupPass2" type="password" class="form-control" placeholder="Repite tu contrasena" minlength="8" autocomplete="new-password" required />
-                            <button type="button" class="password-toggle" onclick="togglePassword('setupPass2','setupPass2Icon')" aria-label="Mostrar u ocultar contrasena">
+                            <input name="ConfirmarPassword" id="setupPass2" type="password" class="form-control" placeholder="Repite tu contraseña" minlength="8" autocomplete="new-password" required />
+                            <button type="button" class="password-toggle" onclick="togglePassword('setupPass2','setupPass2Icon')" aria-label="Mostrar u ocultar contraseña">
                                 <i class="bi bi-eye" id="setupPass2Icon"></i>
                             </button>
                         </div>
@@ -682,7 +682,7 @@
             {
                 <div class="form-kicker">Acceso privado</div>
                 <h2 class="auth-title">Acceso al sistema</h2>
-                <p class="auth-copy">Continua con tu cuenta de administracion o cocina para iniciar el turno.</p>
+                <p class="auth-copy">Continúa con tu cuenta de administración o cocina para iniciar el turno.</p>
 
                 @if (TempData["Exito"] is string loginSuccess)
                 {
@@ -716,16 +716,16 @@
                     }
 
                     <div class="mb-3">
-                        <label asp-for="Email" class="form-label">Correo electronico</label>
+                        <label asp-for="Email" class="form-label">Correo electrónico</label>
                         <input asp-for="Email" class="form-control" placeholder="usuario@restaurante.com" autocomplete="email" autofocus />
-                        <div class="input-help">Usa el correo registrado por administracion.</div>
+                        <div class="input-help">Usa el correo registrado por administración.</div>
                     </div>
 
                     <div class="mb-4">
-                        <label asp-for="Password" class="form-label">Contrasena</label>
+                        <label asp-for="Password" class="form-label">Contraseña</label>
                         <div class="password-field">
-                            <input asp-for="Password" type="password" id="loginPass" class="form-control" placeholder="Tu contrasena" autocomplete="current-password" />
-                            <button type="button" class="password-toggle" onclick="togglePassword('loginPass','loginPassIcon')" aria-label="Mostrar u ocultar contrasena">
+                            <input asp-for="Password" type="password" id="loginPass" class="form-control" placeholder="Tu contraseña" autocomplete="current-password" />
+                            <button type="button" class="password-toggle" onclick="togglePassword('loginPass','loginPassIcon')" aria-label="Mostrar u ocultar contraseña">
                                 <i class="bi bi-eye" id="loginPassIcon"></i>
                             </button>
                         </div>
@@ -739,7 +739,7 @@
 
                 <div class="auth-note">
                     <i class="bi bi-info-circle me-1"></i>
-                    Solo <strong>Admin</strong> y <strong>Cocina</strong> acceden desde la web. Los mozos trabajan desde la app movil Android.
+                    Solo <strong>Admin</strong> y <strong>Cocina</strong> acceden desde la web. Los mozos trabajan desde la app móvil Android.
                 </div>
             }
         </div>
