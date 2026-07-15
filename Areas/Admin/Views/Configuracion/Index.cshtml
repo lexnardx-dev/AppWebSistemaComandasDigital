@@ -1,5 +1,10 @@
 @model AppWebSistemaComandasDigital.Dtos.ConfiguracionRestauranteDTO
 @{
+    var logoPreview = string.IsNullOrWhiteSpace(Model.LogoUrl)
+        ? string.Empty
+        : $"{Model.LogoUrl}{(Model.LogoUrl.Contains('?') ? "&" : "?")}v={Model.FechaActualizacion.Ticks}";
+}
+@{
     ViewData["Title"] = "Configuración";
 }
 
@@ -51,12 +56,12 @@
                     </div>
                     <div class="col-md-9">
                         <label asp-for="LogoUrl" class="form-label fw-semibold small">Logo URL</label>
-                        <input asp-for="LogoUrl" class="form-control" placeholder="https://..." />
+                        <input asp-for="LogoUrl" class="form-control" placeholder="https://..." id="logoUrlInput" />
                         <span asp-validation-for="LogoUrl" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6">
                         <label asp-for="LogoArchivo" class="form-label fw-semibold small">Subir logo</label>
-                        <input asp-for="LogoArchivo" type="file" accept="image/png,image/jpeg,image/webp" class="form-control" />
+                        <input asp-for="LogoArchivo" type="file" accept="image/png,image/jpeg,image/webp" class="form-control" id="logoArchivoInput" />
                         <div class="form-text">JPG, PNG o WebP. Maximo 5 MB.</div>
                         <span asp-validation-for="LogoArchivo" class="text-danger small"></span>
                     </div>
@@ -81,7 +86,7 @@
                 <div class="metric-icon" style="--metric-accent:@Model.ColorMarca">
                     @if (!string.IsNullOrWhiteSpace(Model.LogoUrl))
                     {
-                        <img src="@Model.LogoUrl" alt="Logo" style="width:100%;height:100%;object-fit:cover;border-radius:12px" />
+                        <img src="@logoPreview" alt="Logo" id="logoPreviewImg" style="width:100%;height:100%;object-fit:cover;border-radius:12px" />
                     }
                     else
                     {
@@ -105,4 +110,26 @@
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        const logoUrlInput = document.getElementById('logoUrlInput');
+        const logoArchivoInput = document.getElementById('logoArchivoInput');
+        const previewBox = document.querySelector('.metric-icon');
+
+        function renderLogoPreview(src) {
+            previewBox.innerHTML = src
+                ? `<img src="${src}" alt="Logo" id="logoPreviewImg" style="width:100%;height:100%;object-fit:cover;border-radius:12px" />`
+                : '<i class="bi bi-shop"></i>';
+        }
+
+        logoUrlInput?.addEventListener('input', () => {
+            const url = logoUrlInput.value.trim();
+            renderLogoPreview(url ? `${url}${url.includes('?') ? '&' : '?'}preview=${Date.now()}` : '');
+        });
+
+        logoArchivoInput?.addEventListener('change', () => {
+            const file = logoArchivoInput.files?.[0];
+            if (!file) return;
+            renderLogoPreview(URL.createObjectURL(file));
+        });
+    </script>
 }

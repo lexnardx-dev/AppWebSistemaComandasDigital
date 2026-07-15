@@ -49,7 +49,8 @@ namespace AppWebSistemaComandasDigital.Services
             IgvPorcentaje = c.IgvPorcentaje,
             HorarioAtencion = c.HorarioAtencion,
             LogoUrl = c.LogoUrl,
-            ColorMarca = c.ColorMarca
+            ColorMarca = c.ColorMarca,
+            FechaActualizacion = c.FechaActualizacion
         };
     }
 }

@@ -1,115 +1,189 @@
 @model AppWebSistemaComandasDigital.Dtos.PerfilViewDTO
 @{
     ViewData["Title"] = "Perfil";
+    var inicial = Model.Usuario.Nombre.FirstOrDefault().ToString().ToUpper();
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-heading">
     <div>
         <h3 class="fw-bold mb-0"><i class="bi bi-person-circle text-primary me-2"></i>Perfil</h3>
-        <p class="text-muted mb-0 small">Datos de tu cuenta y seguridad personal</p>
+        <p class="page-subtitle">Cuenta, avatar y seguridad personal</p>
     </div>
 </div>
 
-<div class="row g-4">
-    <div class="col-lg-5">
-        <div class="card surface-card p-4 h-100">
-            <div class="d-flex align-items-center gap-3 mb-4">
+<div class="profile-grid">
+    <section class="card profile-summary-card">
+        <div class="profile-identity">
+            <div class="profile-avatar-wrap">
                 @if (!string.IsNullOrWhiteSpace(Model.Usuario.ImagenUrl))
                 {
-                    <img src="@Model.Usuario.ImagenUrl" alt="Avatar" class="rounded-circle border"
-                         style="width:54px;height:54px;object-fit:cover;" />
+                    <img src="@Model.Usuario.ImagenUrl" alt="Avatar de @Model.Usuario.Nombre" class="profile-avatar-img" />
                 }
                 else
                 {
-                    <div class="sc-topbar-avatar" style="width:54px;height:54px;font-size:1rem">
-                        @Model.Usuario.Nombre.FirstOrDefault().ToString().ToUpper()
-                    </div>
+                    <div class="profile-avatar-fallback">@inicial</div>
                 }
-                <div>
-                    <h5 class="fw-bold mb-0">@Model.Usuario.Nombre</h5>
-                    <span class="badge bg-warning text-dark">@Model.Usuario.Rol</span>
-                </div>
             </div>
-
-            <dl class="row small mb-0">
-                <dt class="col-4 text-muted">Correo</dt>
-                <dd class="col-8">@Model.Usuario.Email</dd>
-                <dt class="col-4 text-muted">Estado</dt>
-                <dd class="col-8">
+            <div class="profile-identity-main">
+                <h4>@Model.Usuario.Nombre</h4>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="badge bg-warning text-dark">@Model.Usuario.Rol</span>
                     <span class="badge @(Model.Usuario.Activo ? "bg-success" : "bg-secondary")">
                         @(Model.Usuario.Activo ? "Activo" : "Inactivo")
                     </span>
-                </dd>
-                <dt class="col-4 text-muted">Creacion</dt>
-                <dd class="col-8">@Model.Usuario.FechaCreacion.ToString("dd/MM/yyyy")</dd>
-            </dl>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="col-lg-7">
-        <div class="card p-4 mb-4">
-            <h5 class="fw-bold mb-1"><i class="bi bi-person-lines-fill text-primary me-2"></i>Editar perfil</h5>
-            <p class="text-muted small mb-4">Actualiza tu nombre visible y foto de cuenta.</p>
+        <div class="profile-facts">
+            <div>
+                <span>Correo</span>
+                <strong>@Model.Usuario.Email</strong>
+            </div>
+            <div>
+                <span>Creacion</span>
+                <strong>@Model.Usuario.FechaCreacion.ToString("dd/MM/yyyy")</strong>
+            </div>
+            <div>
+                <span>ID de usuario</span>
+                <strong>#@Model.Usuario.Id</strong>
+            </div>
+        </div>
+    </section>
 
-            <form asp-action="Actualizar" method="post" enctype="multipart/form-data">
-                @Html.AntiForgeryToken()
-                <div asp-validation-summary="ModelOnly" class="alert alert-danger small"></div>
+    <section class="card profile-panel">
+        <div class="profile-panel-header">
+            <div>
+                <h5><i class="bi bi-person-lines-fill text-primary me-2"></i>Editar perfil</h5>
+                <p>Actualiza tu nombre visible y foto de cuenta.</p>
+            </div>
+        </div>
 
-                <div class="mb-3">
+        <form asp-action="Actualizar" method="post" enctype="multipart/form-data" class="profile-form">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger small"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
                     <label asp-for="Editar.Nombre" class="form-label fw-semibold small">Nombre</label>
                     <input asp-for="Editar.Nombre" class="form-control" autocomplete="name" />
                     <span asp-validation-for="Editar.Nombre" class="text-danger small"></span>
                 </div>
-                <div class="mb-3">
+                <div class="col-md-6">
                     <label asp-for="Editar.ImagenUrl" class="form-label fw-semibold small">URL de imagen</label>
-                    <input asp-for="Editar.ImagenUrl" class="form-control" placeholder="https://..." />
+                    <input asp-for="Editar.ImagenUrl" class="form-control" placeholder="https://..." id="perfilImagenUrl" />
                     <span asp-validation-for="Editar.ImagenUrl" class="text-danger small"></span>
                 </div>
-                <div class="mb-4">
+                <div class="col-md-8">
                     <label asp-for="Editar.ImagenArchivo" class="form-label fw-semibold small">Subir imagen</label>
-                    <input asp-for="Editar.ImagenArchivo" type="file" accept="image/png,image/jpeg,image/webp" class="form-control" />
+                    <input asp-for="Editar.ImagenArchivo" type="file" accept="image/png,image/jpeg,image/webp" class="form-control" id="perfilImagenArchivo" />
                     <div class="form-text">JPG, PNG o WebP. Maximo 5 MB.</div>
                     <span asp-validation-for="Editar.ImagenArchivo" class="text-danger small"></span>
                 </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" type="submit">
+                        <i class="bi bi-check2 me-1"></i>Guardar perfil
+                    </button>
+                </div>
+            </div>
+        </form>
+    </section>
 
-                <button class="btn btn-primary" type="submit">
-                    <i class="bi bi-check2 me-1"></i>Guardar perfil
-                </button>
-            </form>
+    <section class="card profile-panel profile-security-panel">
+        <div class="profile-panel-header">
+            <div>
+                <h5><i class="bi bi-shield-lock text-secondary me-2"></i>Cambiar contrasena</h5>
+                <p>Usa minimo 10 caracteres con mayuscula, minuscula, numero y simbolo.</p>
+            </div>
         </div>
 
-        <div class="card p-4">
-            <h5 class="fw-bold mb-1"><i class="bi bi-shield-lock text-secondary me-2"></i>Cambiar contrasena</h5>
-            <p class="text-muted small mb-4">Actualiza tu acceso sin modificar usuarios del sistema.</p>
+        <form asp-action="CambiarPassword" method="post" class="profile-form">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger small"></div>
 
-            <form asp-action="CambiarPassword" method="post">
-                @Html.AntiForgeryToken()
-                <div asp-validation-summary="ModelOnly" class="alert alert-danger small"></div>
-
-                <div class="mb-3">
+            <div class="row g-3">
+                <div class="col-md-4">
                     <label asp-for="Password.PasswordActual" class="form-label fw-semibold small">Contrasena actual</label>
-                    <input asp-for="Password.PasswordActual" type="password" class="form-control" autocomplete="current-password" />
+                    <div class="input-group password-field">
+                        <input asp-for="Password.PasswordActual" type="password" class="form-control" autocomplete="current-password" />
+                        <button class="btn btn-outline-secondary password-toggle" type="button" title="Mostrar contrasena" aria-label="Mostrar contrasena">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                     <span asp-validation-for="Password.PasswordActual" class="text-danger small"></span>
                 </div>
-                <div class="mb-3">
+                <div class="col-md-4">
                     <label asp-for="Password.NuevaPassword" class="form-label fw-semibold small">Nueva contrasena</label>
-                    <input asp-for="Password.NuevaPassword" type="password" class="form-control" autocomplete="new-password" />
+                    <div class="input-group password-field">
+                        <input asp-for="Password.NuevaPassword" type="password" class="form-control" autocomplete="new-password" id="nuevaPassword" />
+                        <button class="btn btn-outline-secondary password-toggle" type="button" title="Mostrar contrasena" aria-label="Mostrar contrasena">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                     <span asp-validation-for="Password.NuevaPassword" class="text-danger small"></span>
                 </div>
-                <div class="mb-4">
-                    <label asp-for="Password.ConfirmarPassword" class="form-label fw-semibold small">Confirmar nueva contrasena</label>
-                    <input asp-for="Password.ConfirmarPassword" type="password" class="form-control" autocomplete="new-password" />
+                <div class="col-md-4">
+                    <label asp-for="Password.ConfirmarPassword" class="form-label fw-semibold small">Confirmar contrasena</label>
+                    <div class="input-group password-field">
+                        <input asp-for="Password.ConfirmarPassword" type="password" class="form-control" autocomplete="new-password" />
+                        <button class="btn btn-outline-secondary password-toggle" type="button" title="Mostrar contrasena" aria-label="Mostrar contrasena">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                     <span asp-validation-for="Password.ConfirmarPassword" class="text-danger small"></span>
                 </div>
+            </div>
 
-                <button class="btn btn-primary" type="submit">
-                    <i class="bi bi-check2 me-1"></i>Actualizar contrasena
-                </button>
-            </form>
-        </div>
-    </div>
+            <div class="password-strength" aria-live="polite">
+                <div class="password-strength-bar"><span id="passwordStrengthBar"></span></div>
+                <small id="passwordStrengthText">Seguridad de contrasena pendiente.</small>
+            </div>
+
+            <button class="btn btn-primary" type="submit">
+                <i class="bi bi-check2 me-1"></i>Actualizar contrasena
+            </button>
+        </form>
+    </section>
 </div>
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        document.querySelectorAll('.password-toggle').forEach(button => {
+            button.addEventListener('click', () => {
+                const input = button.closest('.password-field').querySelector('input');
+                const visible = input.type === 'text';
+                input.type = visible ? 'password' : 'text';
+                button.title = visible ? 'Mostrar contrasena' : 'Ocultar contrasena';
+                button.setAttribute('aria-label', button.title);
+                button.querySelector('i').className = visible ? 'bi bi-eye' : 'bi bi-eye-slash';
+            });
+        });
+
+        const nuevaPassword = document.getElementById('nuevaPassword');
+        const strengthBar = document.getElementById('passwordStrengthBar');
+        const strengthText = document.getElementById('passwordStrengthText');
+
+        function calcularFortaleza(value) {
+            let score = 0;
+            if (value.length >= 10) score++;
+            if (/[a-z]/.test(value)) score++;
+            if (/[A-Z]/.test(value)) score++;
+            if (/[0-9]/.test(value)) score++;
+            if (/[^A-Za-z0-9]/.test(value)) score++;
+            return score;
+        }
+
+        nuevaPassword?.addEventListener('input', () => {
+            const score = calcularFortaleza(nuevaPassword.value);
+            const percent = Math.min(100, score * 20);
+            strengthBar.style.width = `${percent}%`;
+            strengthBar.className = score >= 5 ? 'strong' : score >= 3 ? 'medium' : 'weak';
+            strengthText.textContent = score >= 5
+                ? 'Contrasena fuerte.'
+                : score >= 3
+                    ? 'Contrasena media. Agrega mas variedad.'
+                    : 'Contrasena debil. Usa longitud, mayuscula, numero y simbolo.';
+        });
+    </script>
 }

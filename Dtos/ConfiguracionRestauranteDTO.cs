@@ -35,5 +35,7 @@ namespace AppWebSistemaComandasDigital.Dtos
         [Required]
         [RegularExpression("^#[0-9A-Fa-f]{6}$", ErrorMessage = "Usa un color hexadecimal valido. Ej: #F6B700.")]
         public string ColorMarca { get; set; } = "#F6B700";
+
+        public DateTime FechaActualizacion { get; set; } = DateTime.UtcNow;
     }
 }
